@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BookScan 利益計算＆出品文生成</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>📚 BookScan</h1>
+    <p class="sub">ISBNスキャン → 相場判断 → 出品コピペ</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="row">
+        <label class="label">モード</label>
+        <div class="seg">
+          <button id="btnModeBuy" class="seg-btn active" type="button">仕入れ判断</button>
+          <button id="btnModeList" class="seg-btn" type="button">出品サポート</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="label">カメラ</label>
+        <div class="actions">
+          <button id="btnStart" class="btn primary" type="button">📷 スキャン開始</button>
+          <button id="btnStop" class="btn" type="button" disabled>停止</button>
+        </div>
+      </div>
+
+      <video id="video" class="video" muted playsinline></video>
+
+      <div class="row">
+        <label class="label">読み取り結果（ISBN/EAN）</label>
+        <div class="field">
+          <input id="isbn" class="input" type="text" placeholder="バーコードを読み取るか、手入力" />
+          <button id="btnLookup" class="btn" type="button">取得</button>
+        </div>
+        <p class="hint">※ iPhoneは「設定 > Safari > カメラ」を許可してね</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>書籍情報</h2>
+      <div class="book">
+        <img id="thumb" class="thumb" alt="表紙" />
+        <div class="book-meta">
+          <div class="meta-row"><span class="meta-label">タイトル</span><span id="title" class="meta-value">-</span></div>
+          <div class="meta-row"><span class="meta-label">著者</span><span id="authors" class="meta-value">-</span></div>
+          <div class="meta-row"><span class="meta-label">出版社</span><span id="publisher" class="meta-value">-</span></div>
+        </div>
+      </div>
+
+      <div class="links">
+        <a id="linkMercari" class="link" target="_blank" rel="noreferrer">メルカリ検索</a>
+        <a id="linkRakuma" class="link" target="_blank" rel="noreferrer">ラクマ検索</a>
+        <a id="linkYahoo" class="link" target="_blank" rel="noreferrer">Yahoo!フリマ検索</a>
+      </div>
+    </section>
+
+    <section id="panelBuy" class="card">
+      <h2>💰 仕入れ判断（予想利益）</h2>
+
+      <div class="grid2">
+        <div>
+          <label class="label">想定販売価格（円）</label>
+          <input id="sellPrice" class="input" type="number" inputmode="numeric" placeholder="例：1200" />
+          <p class="hint">※ ここは「メルカリ相場」を見て入力（まずは手入力でOK）</p>
+        </div>
+
+        <div>
+          <label class="label">仕入れ価格（円）</label>
+          <input id="buyPrice" class="input" type="number" inputmode="numeric" placeholder="例：300" />
+        </div>
+
+        <div>
+          <label class="label">送料（円）</label>
+          <input id="shipping" class="input" type="number" inputmode="numeric" value="210" />
+          <p class="hint">例：ゆうパケットポスト/ネコポス等に合わせて変更</p>
+        </div>
+
+        <div>
+          <label class="label">販売手数料（%）</label>
+          <input id="feeRate" class="input" type="number" inputmode="numeric" value="10" />
+          <p class="hint">例：メルカリは基本10%</p>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="result-row">
+          <span>手数料（円）</span>
+          <strong id="feeYen">-</strong>
+        </div>
+        <div class="result-row">
+          <span>予想利益（円）</span>
+          <strong id="profit">-</strong>
+        </div>
+        <div class="result-row">
+          <span>判断</span>
+          <strong id="judge" class="badge">-</strong>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="label">判断ライン（円）</label>
+        <div class="field">
+          <input id="threshold" class="input" type="number" inputmode="numeric" value="300" />
+          <span class="hint-inline">以上なら「買い」</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="panelList" class="card hidden">
+      <h2>📝 出品サポート（コピペ用）</h2>
+
+      <div class="grid2">
+        <div>
+          <label class="label">販売価格（円）</label>
+          <input id="listPrice" class="input" type="number" inputmode="numeric" placeholder="例：1199" />
+          <p class="hint">端数価格で売りやすく（例：1199/1299）</p>
+        </div>
+
+        <div>
+          <label class="label">状態（選択）</label>
+          <select id="condition" class="input">
+            <option value="目立った傷や汚れなし">目立った傷や汚れなし</option>
+            <option value="やや傷や汚れあり">やや傷や汚れあり</option>
+            <option value="傷や汚れあり">傷や汚れあり</option>
+          </select>
+        </div>
+
+        <div class="span2">
+          <label class="label">補足（任意）</label>
+          <input id="note" class="input" type="text" placeholder="例：書き込みなし / 帯あり / カバーにスレあり など" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="btnGenerate" class="btn primary" type="button">テキスト生成</button>
+        <button id="btnCopy" class="btn" type="button" disabled>コピー</button>
+      </div>
+
+      <label class="label">コピペ用テキスト</label>
+      <textarea id="output" class="textarea" rows="10" placeholder="ここに出品用テキストが生成されます"></textarea>
+      <p id="copyMsg" class="hint"></p>
+    </section>
+
+    <footer class="footer">
+      <small>※ 相場の自動取得はサイト仕様変更・規約等の影響を受けやすいので、まずは検索→入力方式で安定運用にしています。</small>
+    </footer>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
