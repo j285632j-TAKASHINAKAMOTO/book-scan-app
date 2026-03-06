@@ -98,11 +98,11 @@ async function startCamera() {
       if (!scanning) return;
 
       if (result) {
-        const raw = result.getText();
-        const code = normalizeIsbn(raw);
+  const raw = result.getText();
+  alert("読取値: " + raw);
 
-        // 本は基本 978 / 979 の13桁
-        if (!/^(978|979)\d{10}$/.test(code)) return;
+  const code = normalizeIsbn(raw);
+  if (!/^(978|979)\d{10}$/.test(code)) return;
 
         isbnInput.value = code;
         alert("ISBNを読み取りました: " + code);
