@@ -1,37 +1,91 @@
-alert("app.js 読み込みOK");
+import {
+  BrowserMultiFormatReader,
+  BarcodeFormat,
+  DecodeHintType
+} from "https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/esm/index.js";
 
 const video = document.getElementById("video");
 const btnStart = document.getElementById("btnStart");
 const btnStop = document.getElementById("btnStop");
+const isbnInput = document.getElementById("isbn");
+const btnLookup = document.getElementById("btnLookup");
 
 let streamRef = null;
+let controls = null;
+let scanning = false;
 
-async function startCamera() {
-  alert("start");
+// 本のバーコード向け
+const hints = new Map();
+hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+  BarcodeFormat.EAN_13,
+  BarcodeFormat.EAN_8
+]);
+
+const reader = new BrowserMultiFormatReader(hints, {
+  delayBetweenScanAttempts: 200
+});
+
+function normalizeIsbn(text) {
+  return String(text || "").replace(/[^0-9Xx]/g, "").toUpperCase();
+}
+
+async function stopCamera() {
+  scanning = false;
 
   try {
-    alert("try入りました");
+    if (controls) {
+      controls.stop();
+      controls = null;
+    }
+  } catch (e) {
+    console.warn(e);
+  }
 
+  try {
+    if (streamRef) {
+      streamRef.getTracks().forEach(track => track.stop());
+      streamRef = null;
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  video.pause();
+  video.srcObject = null;
+
+  btnStart.disabled = false;
+  btnStop.disabled = true;
+}
+
+async function startCamera() {
+  if (scanning) return;
+  scanning = true;
+
+  try {
     if (!window.isSecureContext) {
-      alert("HTTPSではありません");
+      alert("HTTPSで開いてください");
+      scanning = false;
       return;
     }
-
-    alert("HTTPS OK");
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert("getUserMediaが使えません");
+      alert("このブラウザではカメラが使えません");
+      scanning = false;
       return;
     }
 
-    alert("getUserMedia前");
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+
+    if (streamRef) {
+      streamRef.getTracks().forEach(track => track.stop());
+      streamRef = null;
+    }
 
     streamRef = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
+      video: true,
       audio: false
     });
-
-    alert("getUserMedia成功");
 
     video.setAttribute("playsinline", "true");
     video.muted = true;
@@ -40,25 +94,36 @@ async function startCamera() {
 
     await video.play();
 
-    alert("video.play成功");
+    controls = await reader.decodeFromVideoElement(video, async (result, err) => {
+      if (!scanning) return;
 
-    btnStart.disabled = true;
-    btnStop.disabled = false;
+      if (result) {
+        const raw = result.getText();
+        const code = normalizeIsbn(raw);
+
+        // 本は基本 978 / 979 の13桁
+        if (!/^(978|979)\d{10}$/.test(code)) return;
+
+        isbnInput.value = code;
+        alert("ISBNを読み取りました: " + code);
+
+        await stopCamera();
+
+        if (btnLookup) {
+          btnLookup.click();
+        }
+      }
+    });
+
   } catch (e) {
-    alert(`カメラ失敗: ${e.name} / ${e.message}`);
+    alert(`カメラ/読取失敗: ${e.name || "Error"} / ${e.message || ""}`);
     console.error(e);
+    await stopCamera();
   }
-}
-
-function stopCamera() {
-  if (streamRef) {
-    streamRef.getTracks().forEach(track => track.stop());
-    streamRef = null;
-  }
-  video.srcObject = null;
-  btnStart.disabled = false;
-  btnStop.disabled = true;
 }
 
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
+
+window.addEventListener("pagehide", stopCamera);
+window.addEventListener("beforeunload", stopCamera);
