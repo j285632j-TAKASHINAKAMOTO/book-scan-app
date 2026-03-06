@@ -10,10 +10,14 @@ async function startCamera() {
   alert("start");
 
   try {
+    alert("try入りました");
+
     if (!window.isSecureContext) {
       alert("HTTPSではありません");
       return;
     }
+
+    alert("HTTPS OK");
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert("getUserMediaが使えません");
@@ -58,3 +62,4 @@ function stopCamera() {
 
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
+
