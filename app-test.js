@@ -10,8 +10,6 @@ btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
 
 async function startCamera() {
-  alert("スキャン開始ボタン反応OK");
-
   try {
     if (streamRef) {
       streamRef.getTracks().forEach(track => track.stop());
@@ -25,7 +23,7 @@ async function startCamera() {
         },
         audio: false
       });
-    } catch (e) {
+    } catch {
       streamRef = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: "environment" }
@@ -40,7 +38,6 @@ async function startCamera() {
     video.srcObject = streamRef;
 
     await video.play();
-
     alert("背面カメラ起動OK");
   } catch (e) {
     alert(`カメラ失敗: ${e.name} / ${e.message}`);
