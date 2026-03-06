@@ -13,20 +13,19 @@ let streamRef = null;
 let controls = null;
 let scanning = false;
 
-// まずは本で使いそうな形式を広めに取る
+// 本のバーコード向け設定
 const hints = new Map();
 hints.set(DecodeHintType.POSSIBLE_FORMATS, [
   BarcodeFormat.EAN_13,
   BarcodeFormat.EAN_8,
-  BarcodeFormat.UPC_A,
-  BarcodeFormat.CODE_128,
-  BarcodeFormat.CODE_39
+  BarcodeFormat.UPC_A
 ]);
+hints.set(DecodeHintType.TRY_HARDER, true);
 
 const reader = new BrowserMultiFormatReader(hints);
 
 function normalizeText(text) {
-  return String(text || "").trim();
+  return String(text || "").replace(/[^0-9Xx]/g, "").toUpperCase();
 }
 
 async function stopCamera() {
@@ -80,7 +79,6 @@ async function startCamera() {
       streamRef = null;
     }
 
-    // まずは安定優先
     streamRef = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
@@ -96,20 +94,21 @@ async function startCamera() {
     video.srcObject = streamRef;
 
     await video.play();
+    alert("video play 成功");
 
-    // 少し待つとピントが合いやすい
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // ピントが合うまで少し待つ
+    await new Promise(resolve => setTimeout(resolve, 1200));
 
     controls = await reader.decodeFromVideoElement(video, async (result, err) => {
       if (!scanning) return;
 
       if (result) {
-        const raw = normalizeText(result.getText());
+        const raw = result.getText();
+        const code = normalizeText(raw);
 
-        // まずは読めた値を必ず出す
-        alert("読取値: " + raw);
+        alert("読取値: " + code);
 
-        isbnInput.value = raw;
+        isbnInput.value = code;
         await stopCamera();
       }
     });
