@@ -62,4 +62,3 @@ function stopCamera() {
 
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
-
