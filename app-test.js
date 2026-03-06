@@ -1,58 +1,13 @@
-const video = document.getElementById("video");
+alert("app-test.js 読み込みOK");
+
 const btnStart = document.getElementById("btnStart");
 const btnStop = document.getElementById("btnStop");
+const video = document.getElementById("video");
 
-let streamRef = null;
+alert("btnStart=" + !!btnStart);
+alert("btnStop=" + !!btnStop);
+alert("video=" + !!video);
 
-async function startCamera() {
-  try {
-    alert("start");
-
-    if (!window.isSecureContext) {
-      alert("HTTPSではありません");
-      return;
-    }
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert("getUserMediaが使えません");
-      return;
-    }
-
-    alert("getUserMedia前");
-
-    streamRef = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: false
-    });
-
-    alert("getUserMedia成功");
-
-    video.setAttribute("playsinline", "true");
-    video.muted = true;
-    video.autoplay = true;
-    video.srcObject = streamRef;
-
-    await video.play();
-
-    alert("video.play成功");
-
-    btnStart.disabled = true;
-    btnStop.disabled = false;
-  } catch (e) {
-    alert(`カメラ失敗: ${e.name} / ${e.message}`);
-    console.error(e);
-  }
-}
-
-function stopCamera() {
-  if (streamRef) {
-    streamRef.getTracks().forEach(track => track.stop());
-    streamRef = null;
-  }
-  video.srcObject = null;
-  btnStart.disabled = false;
-  btnStop.disabled = true;
-}
-
-btnStart.addEventListener("click", startCamera);
-btnStop.addEventListener("click", stopCamera);
+btnStart.addEventListener("click", () => {
+  alert("スキャン開始ボタン反応OK");
+});
