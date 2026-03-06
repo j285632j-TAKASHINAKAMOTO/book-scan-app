@@ -8,35 +8,33 @@ const video = document.getElementById("video");
 const btnStart = document.getElementById("btnStart");
 const btnStop = document.getElementById("btnStop");
 const isbnInput = document.getElementById("isbn");
-const btnLookup = document.getElementById("btnLookup");
 
 let streamRef = null;
 let controls = null;
 let scanning = false;
 
-// 本のバーコード向け
+// まずは本で使いそうな形式を広めに取る
 const hints = new Map();
 hints.set(DecodeHintType.POSSIBLE_FORMATS, [
   BarcodeFormat.EAN_13,
-  BarcodeFormat.EAN_8
+  BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A,
+  BarcodeFormat.CODE_128,
+  BarcodeFormat.CODE_39
 ]);
 
-const reader = new BrowserMultiFormatReader(hints, {
-  delayBetweenScanAttempts: 200
-});
+const reader = new BrowserMultiFormatReader(hints);
 
-function normalizeIsbn(text) {
-  return String(text || "").replace(/[^0-9Xx]/g, "").toUpperCase();
+function normalizeText(text) {
+  return String(text || "").trim();
 }
 
 async function stopCamera() {
   scanning = false;
 
   try {
-    if (controls) {
-      controls.stop();
-      controls = null;
-    }
+    controls?.stop();
+    controls = null;
   } catch (e) {
     console.warn(e);
   }
@@ -82,8 +80,13 @@ async function startCamera() {
       streamRef = null;
     }
 
+    // まずは安定優先
     streamRef = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
       audio: false
     });
 
@@ -94,24 +97,20 @@ async function startCamera() {
 
     await video.play();
 
+    // 少し待つとピントが合いやすい
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     controls = await reader.decodeFromVideoElement(video, async (result, err) => {
       if (!scanning) return;
 
       if (result) {
-  const raw = result.getText();
-  alert("読取値: " + raw);
+        const raw = normalizeText(result.getText());
 
-  const code = normalizeIsbn(raw);
-  if (!/^(978|979)\d{10}$/.test(code)) return;
+        // まずは読めた値を必ず出す
+        alert("読取値: " + raw);
 
-        isbnInput.value = code;
-        alert("ISBNを読み取りました: " + code);
-
+        isbnInput.value = raw;
         await stopCamera();
-
-        if (btnLookup) {
-          btnLookup.click();
-        }
       }
     });
 
