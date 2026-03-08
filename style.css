@@ -60,14 +60,6 @@
   .btn.primary{border-color:rgba(77,163,255,.5); background:rgba(77,163,255,.12)}
   .actions{display:flex; gap:8px}
   
-  .video{
-    width:100%;
-    max-height:280px;
-    border-radius:12px;
-    background:#000;
-    border:1px solid var(--line);
-  }
-  
   .hint{margin:6px 0 0; color:var(--muted); font-size:12px}
   .hint-inline{color:var(--muted); font-size:12px}
   
@@ -154,3 +146,4 @@
   border-radius: 12px;
   border: 1px solid var(--line);
 }
+
