@@ -12,12 +12,36 @@ function stopCamera() {
     streamRef.getTracks().forEach(track => track.stop());
     streamRef = null;
   }
+
+  video.pause();
   video.srcObject = null;
+
   btnStart.disabled = false;
   btnStop.disabled = true;
 }
 
+function waitForVideoReady(videoEl) {
+  return new Promise((resolve) => {
+    if (videoEl.readyState >= 1) {
+      resolve();
+      return;
+    }
+    videoEl.onloadedmetadata = () => resolve();
+  });
+}
+
 async function getBackCameraStream() {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" }
+      },
+      audio: false
+    });
+  } catch (e) {
+    console.log("facingMode指定で失敗。deviceId方式に切り替えます。", e);
+  }
+
   const tempStream = await navigator.mediaDevices.getUserMedia({
     video: true,
     audio: false
@@ -36,7 +60,7 @@ async function getBackCameraStream() {
   }
 
   if (backCam) {
-    return navigator.mediaDevices.getUserMedia({
+    return await navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: backCam.deviceId }
       },
@@ -44,7 +68,7 @@ async function getBackCameraStream() {
     });
   }
 
-  return navigator.mediaDevices.getUserMedia({
+  return await navigator.mediaDevices.getUserMedia({
     video: true,
     audio: false
   });
@@ -52,7 +76,7 @@ async function getBackCameraStream() {
 
 async function startCamera() {
   try {
-    await stopCamera();
+    stopCamera();
 
     if (!window.isSecureContext) {
       alert("HTTPSのページで開いてください。");
@@ -71,6 +95,7 @@ async function startCamera() {
     video.autoplay = true;
     video.srcObject = streamRef;
 
+    await waitForVideoReady(video);
     await video.play();
 
     btnStart.disabled = true;
@@ -78,6 +103,6 @@ async function startCamera() {
   } catch (e) {
     alert(`カメラを起動できませんでした: ${e.name} / ${e.message}`);
     console.error(e);
-    await stopCamera();
+    stopCamera();
   }
 }
