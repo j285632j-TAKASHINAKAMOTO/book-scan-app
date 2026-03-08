@@ -7,7 +7,7 @@ let streamRef = null;
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
 
-async function stopCamera() {
+function stopCamera() {
   if (streamRef) {
     streamRef.getTracks().forEach(track => track.stop());
     streamRef = null;
