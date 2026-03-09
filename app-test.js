@@ -166,12 +166,6 @@ async function lookupBook() {
   return;
 }
 
-  if (!isValidIsbn13(isbn)) {
-  setBookInfoEmpty("ISBN誤り");
-  alert("ISBNの数字が正しくない可能性があります。");
-  return;
-}
-
   titleEl.textContent = "取得中...";
   authorsEl.textContent = "-";
   publisherEl.textContent = "-";
