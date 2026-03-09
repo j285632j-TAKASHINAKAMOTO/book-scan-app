@@ -55,7 +55,7 @@ let streamRef = null;
 let scanReader = null;
 let scanActive = false;
 let lastScannedText = "";
-let lastScanAt = 0;
+let isLookingUp = false;
 
 // --------------------
 // 初期化
