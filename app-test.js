@@ -260,17 +260,8 @@ async function startBarcodeScanning() {
 
     const zxing = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
     const BrowserMultiFormatReader = zxing.BrowserMultiFormatReader;
-    const BarcodeFormat = zxing.BarcodeFormat;
-    const DecodeHintType = zxing.DecodeHintType;
 
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A
-    ]);
-
-    scanReader = new BrowserMultiFormatReader(hints);
+    scanReader = new BrowserMultiFormatReader();
     scanActive = true;
 
     console.log("ZXing スキャン開始");
@@ -278,9 +269,7 @@ async function startBarcodeScanning() {
     scanReader.decodeFromConstraints(
       {
         video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          facingMode: "environment"
         }
       },
       video,
@@ -299,10 +288,9 @@ async function startBarcodeScanning() {
     );
   } catch (e) {
     console.error("ZXingエラー:", e);
-    alert("バーコード読み取りの初期化に失敗しました");
+    alert(`バーコード読み取りの初期化に失敗しました: ${e.message}`);
   }
 }
-
 function onBarcodeDetected(text) {
   const now = Date.now();
   const normalized = normalizeIsbn(text);
