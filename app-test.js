@@ -482,6 +482,7 @@ async function lookupBook() {
           const authors = book.summary.author || "-";
           const publisher = book.summary.publisher || "-";
           const thumb = (book.summary.cover || "").replace("http://", "https://");
+          console.log("表紙URL:", thumb);
 
           setBookInfo({ title, authors, publisher, thumb });
           updateSearchLinks(title);
