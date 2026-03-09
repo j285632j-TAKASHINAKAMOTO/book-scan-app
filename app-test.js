@@ -247,6 +247,7 @@ async function lookupBook() {
     console.error("Google Books取得失敗:", e);
   }
 
+  
   // ③ 両方ダメだったとき
   setBookInfoEmpty("書誌取得不可");
   authorsEl.textContent = "検索リンクで確認してください";
