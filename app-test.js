@@ -291,14 +291,14 @@ async function startBarcodeScanning() {
     alert(`バーコード読み取りの初期化に失敗しました: ${e.message}`);
   }
 }
+
 function onBarcodeDetected(text) {
   const now = Date.now();
   const normalized = normalizeIsbn(text);
 
-  console.log("onBarcodeDetected:", normalized);
+  console.log("読み取り:", normalized);
 
   if (!normalized) return;
-  if (isLookingUp) return;
 
   if (normalized === lastScannedText && now - lastScanAt < 5000) {
     return;
@@ -313,13 +313,11 @@ function onBarcodeDetected(text) {
 
   updateSearchLinks(normalized);
 
+  // カメラ停止
   stopCamera();
 
-  if (isValidIsbn13(normalized)) {
-    lookupBook();
-  } else {
-    alert(`読み取り結果: ${normalized}`);
-  }
+  // ★ISBN判定を外して必ず検索
+  lookupBook();
 }
 
 // --------------------
