@@ -260,8 +260,17 @@ async function startBarcodeScanning() {
 
     const zxing = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
     const BrowserMultiFormatReader = zxing.BrowserMultiFormatReader;
+    const BarcodeFormat = zxing.BarcodeFormat;
+    const DecodeHintType = zxing.DecodeHintType;
 
-    scanReader = new BrowserMultiFormatReader();
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A
+    ]);
+
+    scanReader = new BrowserMultiFormatReader(hints);
     scanActive = true;
 
     console.log("ZXing スキャン開始");
@@ -269,7 +278,9 @@ async function startBarcodeScanning() {
     scanReader.decodeFromConstraints(
       {
         video: {
-          facingMode: "environment"
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
       },
       video,
