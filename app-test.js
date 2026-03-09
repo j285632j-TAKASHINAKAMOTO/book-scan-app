@@ -506,11 +506,14 @@ async function lookupBook() {
           const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
           const publisher = info.publisher || "-";
           const thumb =
-            info.imageLinks?.thumbnail ||
-            info.imageLinks?.smallThumbnail ||
-            info.imageLinks?.small ||
-            info.imageLinks?.medium ||
-            "";
+  (
+    info.imageLinks?.thumbnail ||
+    info.imageLinks?.smallThumbnail ||
+    info.imageLinks?.small ||
+    info.imageLinks?.medium ||
+    info.imageLinks?.large ||
+    ""
+  ).replace("http://", "https://");
 
           setBookInfo({ title, authors, publisher, thumb });
           updateSearchLinks(title);
