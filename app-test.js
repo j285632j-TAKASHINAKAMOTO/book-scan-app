@@ -1,37 +1,38 @@
 const $ = (id) => document.getElementById(id);
 
-console.log("app-test.js ZXing安全版 読み込み開始");
+console.log("app-test.js 安全版 読み込み開始");
 
 // --------------------
 // 要素取得
 // --------------------
+
+// カメラ
 const btnStart = $("btnStart");
 const btnStop = $("btnStop");
 const video = $("video");
 
+// ISBN / 取得
 const isbnInput = $("isbn");
 const btnLookup = $("btnLookup");
 
+// 書籍情報
 const titleEl = $("title");
 const authorsEl = $("authors");
 const publisherEl = $("publisher");
 const thumbEl = $("thumb");
-const thumb =
-  info.imageLinks?.thumbnail ||
-  info.imageLinks?.smallThumbnail ||
-  info.imageLinks?.small ||
-  info.imageLinks?.medium ||
-  "";
 
+// 検索リンク
 const linkMercari = $("linkMercari");
 const linkRakuma = $("linkRakuma");
 const linkYahoo = $("linkYahoo");
 
+// モード切替
 const btnModeBuy = $("btnModeBuy");
 const btnModeList = $("btnModeList");
 const panelBuy = $("panelBuy");
 const panelList = $("panelList");
 
+// 利益計算
 const sellPrice = $("sellPrice");
 const buyPrice = $("buyPrice");
 const shipping = $("shipping");
@@ -41,6 +42,7 @@ const profitEl = $("profit");
 const judgeEl = $("judge");
 const threshold = $("threshold");
 
+// 出品サポート
 const listPrice = $("listPrice");
 const condition = $("condition");
 const note = $("note");
@@ -50,10 +52,6 @@ const output = $("output");
 const copyMsg = $("copyMsg");
 
 let streamRef = null;
-let scanReader = null;
-let scanActive = false;
-let lastScannedText = "";
-let lastScanAt = 0;
 
 // --------------------
 // 初期化
@@ -64,16 +62,26 @@ function init() {
   try {
     console.log("init 開始");
 
-    btnStart?.addEventListener("click", startCameraAndScan);
+    // ボタンイベント
+    btnStart?.addEventListener("click", startCamera);
     btnStop?.addEventListener("click", stopCamera);
     btnLookup?.addEventListener("click", lookupBook);
 
     isbnInput?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") lookupBook();
+      if (e.key === "Enter") {
+        lookupBook();
+      }
     });
 
-    btnModeBuy?.addEventListener("click", () => switchMode("buy"));
-    btnModeList?.addEventListener("click", () => switchMode("list"));
+    btnModeBuy?.addEventListener("click", () => {
+      console.log("仕入れ判断ボタン押下");
+      switchMode("buy");
+    });
+
+    btnModeList?.addEventListener("click", () => {
+      console.log("出品サポートボタン押下");
+      switchMode("list");
+    });
 
     [sellPrice, buyPrice, shipping, feeRate, threshold].forEach((el) => {
       el?.addEventListener("input", calcProfit);
@@ -86,35 +94,26 @@ function init() {
     switchMode("buy");
     calcProfit();
 
-    if (thumbEl) thumbEl.style.display = "none";
-    if (btnCopy) btnCopy.disabled = true;
+    if (thumbEl) {
+      thumbEl.style.display = "none";
+    }
+
+    if (btnCopy) {
+      btnCopy.disabled = true;
+    }
 
     console.log("init 完了");
   } catch (e) {
     console.error("initエラー:", e);
-    alert("初期化でエラーが発生しました。");
+    alert("初期化でエラーが発生しました。コンソールを確認してください。");
   }
 }
 
 // --------------------
 // カメラ
 // --------------------
-function resetScanner() {
-  try {
-    if (scanReader && typeof scanReader.reset === "function") {
-      scanReader.reset();
-    }
-  } catch (e) {
-    console.warn("scanner reset warning:", e);
-  }
-  scanReader = null;
-  scanActive = false;
-}
-
 function stopCamera() {
   try {
-    resetScanner();
-
     if (streamRef) {
       streamRef.getTracks().forEach((track) => track.stop());
       streamRef = null;
@@ -138,10 +137,12 @@ function waitForVideoReady(videoEl) {
       resolve();
       return;
     }
+
     if (videoEl.readyState >= 1) {
       resolve();
       return;
     }
+
     videoEl.onloadedmetadata = () => resolve();
   });
 }
@@ -149,7 +150,9 @@ function waitForVideoReady(videoEl) {
 async function getBackCameraStream() {
   try {
     return await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
+      video: {
+        facingMode: { ideal: "environment" }
+      },
       audio: false
     });
   } catch (e) {
@@ -188,9 +191,9 @@ async function getBackCameraStream() {
   });
 }
 
-async function startCameraAndScan() {
+async function startCamera() {
   try {
-    console.log("startCameraAndScan 実行");
+    console.log("startCamera 実行");
 
     stopCamera();
 
@@ -204,12 +207,12 @@ async function startCameraAndScan() {
       return;
     }
 
+    streamRef = await getBackCameraStream();
+
     if (!video) {
       alert("video要素が見つかりません。");
       return;
     }
-
-    streamRef = await getBackCameraStream();
 
     video.setAttribute("playsinline", "true");
     video.muted = true;
@@ -221,75 +224,10 @@ async function startCameraAndScan() {
 
     if (btnStart) btnStart.disabled = true;
     if (btnStop) btnStop.disabled = false;
-
-    await startBarcodeScanning();
   } catch (e) {
-    console.error("startCameraAndScanエラー:", e);
+    console.error("startCameraエラー:", e);
     alert(`カメラを起動できませんでした: ${e.name} / ${e.message}`);
     stopCamera();
-  }
-}
-
-async function startBarcodeScanning() {
-  try {
-    if (!video || scanActive) return;
-
-    console.log("ZXing 読み込み開始");
-
-    const zxing = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
-    const BrowserMultiFormatReader = zxing.BrowserMultiFormatReader;
-
-    if (!BrowserMultiFormatReader) {
-      throw new Error("ZXingの読み込みに失敗しました");
-    }
-
-    scanReader = new BrowserMultiFormatReader();
-    scanActive = true;
-
-    scanReader.decodeFromVideoElement(video, (result, error) => {
-      if (result) {
-        const text = typeof result.getText === "function"
-          ? result.getText()
-          : String(result.text || "");
-        onBarcodeDetected(text);
-        return;
-      }
-
-      if (error) {
-        const name = error?.name || "";
-        if (name !== "NotFoundException") {
-          console.warn("scan error:", error);
-        }
-      }
-    });
-
-    console.log("ZXing スキャン開始");
-  } catch (e) {
-    console.error("startBarcodeScanningエラー:", e);
-    alert("バーコード読み取り機能の読み込みに失敗しました。");
-  }
-}
-
-function onBarcodeDetected(text) {
-  const now = Date.now();
-  const normalized = normalizeIsbn(text);
-
-  if (!normalized) return;
-
-  if (normalized === lastScannedText && now - lastScanAt < 2000) {
-    return;
-  }
-
-  lastScannedText = normalized;
-  lastScanAt = now;
-
-  console.log("barcode detected:", normalized);
-
-  if (isbnInput) isbnInput.value = normalized;
-  updateSearchLinks(normalized);
-
-  if (isValidIsbn13(normalized)) {
-    lookupBook();
   }
 }
 
@@ -298,7 +236,12 @@ function onBarcodeDetected(text) {
 // --------------------
 function switchMode(mode) {
   try {
-    if (!panelBuy || !panelList) return;
+    console.log("switchMode:", mode);
+
+    if (!panelBuy || !panelList) {
+      console.error("panelBuy または panelList が見つかりません");
+      return;
+    }
 
     if (mode === "buy") {
       panelBuy.classList.remove("hidden");
@@ -343,7 +286,6 @@ function setBookInfoEmpty(message = "-") {
 
   if (thumbEl) {
     thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙なし";
     thumbEl.style.display = "none";
   }
 }
@@ -353,43 +295,35 @@ function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
 
-  if (!thumbEl) return;
-
-  const safeThumb = (thumb || "").replace("http://", "https://").trim();
-
-  if (!safeThumb) {
-    console.log("表紙URLなし");
-    thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙なし";
-    thumbEl.style.display = "none";
-    return;
+  if (thumbEl) {
+    if (thumb) {
+      thumbEl.src = thumb.replace("http://", "https://");
+      thumbEl.style.display = "block";
+    } else {
+      thumbEl.removeAttribute("src");
+      thumbEl.style.display = "none";
+    }
   }
-
-  thumbEl.onload = () => {
-    console.log("表紙画像 読み込み成功:", safeThumb);
-    thumbEl.style.display = "block";
-  };
-
-  thumbEl.onerror = () => {
-    console.log("表紙画像 読み込み失敗:", safeThumb);
-    thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙読み込み失敗";
-    thumbEl.style.display = "none";
-  };
-
-  thumbEl.src = safeThumb;
-  thumbEl.alt = `${title} の表紙`;
 }
+
 function updateSearchLinks(keyword) {
   const q = encodeURIComponent(keyword || isbnInput?.value || "");
 
-  if (linkMercari) linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
-  if (linkRakuma) linkRakuma.href = `https://fril.jp/s?query=${q}`;
-  if (linkYahoo) linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+  if (linkMercari) {
+    linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
+  }
+  if (linkRakuma) {
+    linkRakuma.href = `https://fril.jp/s?query=${q}`;
+  }
+  if (linkYahoo) {
+    linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+  }
 }
 
 async function lookupBook() {
   try {
+    console.log("lookupBook 実行");
+
     const raw = isbnInput?.value?.trim() || "";
     const isbn = normalizeIsbn(raw);
 
@@ -408,19 +342,21 @@ async function lookupBook() {
     setBookInfoEmpty("取得中...");
     updateSearchLinks(isbn);
 
+    // openBD
     try {
       const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
       if (res.ok) {
         const data = await res.json();
         const book = data?.[0];
+
         if (book?.summary) {
-          setBookInfo({
-            title: book.summary.title || "タイトル不明",
-            authors: book.summary.author || "-",
-            publisher: book.summary.publisher || "-",
-            thumb: book.summary.cover || ""
-          });
-          updateSearchLinks(book.summary.title || isbn);
+          const title = book.summary.title || "タイトル不明";
+          const authors = book.summary.author || "-";
+          const publisher = book.summary.publisher || "-";
+          const thumb = book.summary.cover || "";
+
+          setBookInfo({ title, authors, publisher, thumb });
+          updateSearchLinks(title);
           return;
         }
       }
@@ -428,20 +364,25 @@ async function lookupBook() {
       console.warn("openBD失敗:", e);
     }
 
+    // Google Books
     try {
       const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
       if (res.ok) {
         const data = await res.json();
         const item = data?.items?.[0];
+
         if (item?.volumeInfo) {
           const info = item.volumeInfo;
-          setBookInfo({
-            title: info.title || "タイトル不明",
-            authors: Array.isArray(info.authors) ? info.authors.join(" / ") : "-",
-            publisher: info.publisher || "-",
-            thumb: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ""
-          });
-          updateSearchLinks(info.title || isbn);
+          const title = info.title || "タイトル不明";
+          const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+          const publisher = info.publisher || "-";
+          const thumb =
+            info.imageLinks?.thumbnail ||
+            info.imageLinks?.smallThumbnail ||
+            "";
+
+          setBookInfo({ title, authors, publisher, thumb });
+          updateSearchLinks(title);
           return;
         }
       }
@@ -488,10 +429,15 @@ function calcProfit() {
     if (judgeEl) {
       let text = "-";
 
-      if (sell <= 0) text = "未入力";
-      else if (profit >= line) text = "買い";
-      else if (profit >= 0) text = "微妙";
-      else text = "見送り";
+      if (sell <= 0) {
+        text = "未入力";
+      } else if (profit >= line) {
+        text = "買い";
+      } else if (profit >= 0) {
+        text = "微妙";
+      } else {
+        text = "見送り";
+      }
 
       judgeEl.textContent = text;
       judgeEl.style.borderColor = "";
@@ -523,6 +469,8 @@ function getSafeText(el, fallback = "") {
 
 function generateListingText() {
   try {
+    console.log("generateListingText 実行");
+
     const title = getSafeText(titleEl, "タイトル不明");
     const authors = getSafeText(authorsEl, "-");
     const publisher = getSafeText(publisherEl, "-");
@@ -552,12 +500,22 @@ function generateListingText() {
       `よろしくお願いいたします。`
     ].filter(Boolean);
 
-    if (output) output.value = lines.join("\n");
-    if (btnCopy) btnCopy.disabled = !(output && output.value);
-    if (copyMsg) copyMsg.textContent = "テキストを生成しました。";
+    if (output) {
+      output.value = lines.join("\n");
+    }
+
+    if (btnCopy) {
+      btnCopy.disabled = !(output && output.value);
+    }
+
+    if (copyMsg) {
+      copyMsg.textContent = "テキストを生成しました。";
+    }
   } catch (e) {
     console.error("generateListingTextエラー:", e);
-    if (copyMsg) copyMsg.textContent = "テキスト生成でエラーが発生しました。";
+    if (copyMsg) {
+      copyMsg.textContent = "テキスト生成でエラーが発生しました。";
+    }
   }
 }
 
@@ -571,9 +529,14 @@ async function copyListingText() {
     }
 
     await navigator.clipboard.writeText(text);
-    if (copyMsg) copyMsg.textContent = "コピーしました。";
+
+    if (copyMsg) {
+      copyMsg.textContent = "コピーしました。";
+    }
   } catch (e) {
     console.error("copyListingTextエラー:", e);
-    if (copyMsg) copyMsg.textContent = "コピーに失敗しました。手動でコピーしてください。";
+    if (copyMsg) {
+      copyMsg.textContent = "コピーに失敗しました。手動でコピーしてください。";
+    }
   }
 }
