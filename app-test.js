@@ -63,7 +63,7 @@ function init() {
     console.log("init 開始");
 
     // ボタンイベント
-    btnStart?.addEventListener("click", startCameraAndScan);
+    btnStart?.addEventListener("click", startCamera);
     btnStop?.addEventListener("click", stopCamera);
     btnLookup?.addEventListener("click", lookupBook);
 
@@ -342,7 +342,7 @@ async function lookupBook() {
     setBookInfoEmpty("取得中...");
     updateSearchLinks(isbn);
 
-    // ① openBD
+    // openBD
     try {
       const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
       if (res.ok) {
@@ -364,7 +364,7 @@ async function lookupBook() {
       console.warn("openBD失敗:", e);
     }
 
-    // ② Google Books
+    // Google Books
     try {
       const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
       if (res.ok) {
@@ -379,8 +379,6 @@ async function lookupBook() {
           const thumb =
             info.imageLinks?.thumbnail ||
             info.imageLinks?.smallThumbnail ||
-            info.imageLinks?.small ||
-            info.imageLinks?.medium ||
             "";
 
           setBookInfo({ title, authors, publisher, thumb });
@@ -396,7 +394,6 @@ async function lookupBook() {
     if (authorsEl) authorsEl.textContent = "検索リンクで確認してください";
     updateSearchLinks(isbn);
     alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
-
   } catch (e) {
     console.error("lookupBook全体エラー:", e);
     alert("取得処理でエラーが発生しました。");
