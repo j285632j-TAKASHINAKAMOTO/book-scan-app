@@ -1,5 +1,9 @@
 const $ = (id) => document.getElementById(id);
 
+// --------------------
+// 要素取得
+// --------------------
+
 // カメラ
 const btnStart = $("btnStart");
 const btnStop = $("btnStop");
@@ -20,9 +24,36 @@ const linkMercari = $("linkMercari");
 const linkRakuma = $("linkRakuma");
 const linkYahoo = $("linkYahoo");
 
+// モード切替
+const btnModeBuy = $("btnModeBuy");
+const btnModeList = $("btnModeList");
+const panelBuy = $("panelBuy");
+const panelList = $("panelList");
+
+// 利益計算
+const sellPrice = $("sellPrice");
+const buyPrice = $("buyPrice");
+const shipping = $("shipping");
+const feeRate = $("feeRate");
+const feeYen = $("feeYen");
+const profitEl = $("profit");
+const judgeEl = $("judge");
+const threshold = $("threshold");
+
+// 出品サポート
+const listPrice = $("listPrice");
+const condition = $("condition");
+const note = $("note");
+const btnGenerate = $("btnGenerate");
+const btnCopy = $("btnCopy");
+const output = $("output");
+const copyMsg = $("copyMsg");
+
 let streamRef = null;
 
-// 初期化
+// --------------------
+// 初期設定
+// --------------------
 btnStart?.addEventListener("click", startCamera);
 btnStop?.addEventListener("click", stopCamera);
 btnLookup?.addEventListener("click", lookupBook);
@@ -33,7 +64,25 @@ isbnInput?.addEventListener("keydown", (e) => {
   }
 });
 
+btnModeBuy?.addEventListener("click", () => switchMode("buy"));
+btnModeList?.addEventListener("click", () => switchMode("list"));
+
+[sellPrice, buyPrice, shipping, feeRate, threshold].forEach((el) => {
+  el?.addEventListener("input", calcProfit);
+});
+
+btnGenerate?.addEventListener("click", generateListingText);
+btnCopy?.addEventListener("click", copyListingText);
+
 updateSearchLinks("");
+switchMode("buy");
+calcProfit();
+
+if (thumbEl) {
+  thumbEl.style.display = "none";
+}
+
+console.log("BookScan 完成版 app-test.js 読み込みOK");
 
 // --------------------
 // カメラ
@@ -147,7 +196,24 @@ async function startCamera() {
 }
 
 // --------------------
-// 書籍情報
+// モード切替
+// --------------------
+function switchMode(mode) {
+  if (mode === "buy") {
+    panelBuy?.classList.remove("hidden");
+    panelList?.classList.add("hidden");
+    btnModeBuy?.classList.add("active");
+    btnModeList?.classList.remove("active");
+  } else {
+    panelBuy?.classList.add("hidden");
+    panelList?.classList.remove("hidden");
+    btnModeBuy?.classList.remove("active");
+    btnModeList?.classList.add("active");
+  }
+}
+
+// --------------------
+// 書籍情報取得
 // --------------------
 function normalizeIsbn(value) {
   return (value || "").replace(/[^0-9Xx]/g, "").toUpperCase();
@@ -167,38 +233,50 @@ function isValidIsbn13(isbn) {
 }
 
 function setBookInfoEmpty(message = "-") {
-  titleEl.textContent = message;
-  authorsEl.textContent = "-";
-  publisherEl.textContent = "-";
-  thumbEl.removeAttribute("src");
-  thumbEl.style.display = "none";
-}
+  if (titleEl) titleEl.textContent = message;
+  if (authorsEl) authorsEl.textContent = "-";
+  if (publisherEl) publisherEl.textContent = "-";
 
-function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }) {
-  titleEl.textContent = title;
-  authorsEl.textContent = authors;
-  publisherEl.textContent = publisher;
-
-  if (thumb) {
-    thumbEl.src = thumb.replace("http://", "https://");
-    thumbEl.style.display = "block";
-  } else {
+  if (thumbEl) {
     thumbEl.removeAttribute("src");
     thumbEl.style.display = "none";
   }
 }
 
+function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }) {
+  if (titleEl) titleEl.textContent = title;
+  if (authorsEl) authorsEl.textContent = authors;
+  if (publisherEl) publisherEl.textContent = publisher;
+
+  if (thumbEl) {
+    if (thumb) {
+      thumbEl.src = thumb.replace("http://", "https://");
+      thumbEl.style.display = "block";
+    } else {
+      thumbEl.removeAttribute("src");
+      thumbEl.style.display = "none";
+    }
+  }
+}
+
 function updateSearchLinks(keyword) {
   const q = encodeURIComponent(keyword || isbnInput?.value || "");
-  if (linkMercari) linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
-  if (linkRakuma) linkRakuma.href = `https://fril.jp/s?query=${q}`;
-  if (linkYahoo) linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+
+  if (linkMercari) {
+    linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
+  }
+  if (linkRakuma) {
+    linkRakuma.href = `https://fril.jp/s?query=${q}`;
+  }
+  if (linkYahoo) {
+    linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+  }
 }
 
 async function lookupBook() {
   console.log("lookupBook 実行");
 
-  const raw = isbnInput.value.trim();
+  const raw = isbnInput?.value.trim() || "";
   const isbn = normalizeIsbn(raw);
 
   if (!isbn) {
@@ -208,8 +286,8 @@ async function lookupBook() {
 
   if (!isValidIsbn13(isbn)) {
     setBookInfoEmpty("ISBN誤り");
-    alert("ISBNの数字が正しくない可能性があります。");
     updateSearchLinks(isbn);
+    alert("ISBNの数字が正しくない可能性があります。");
     return;
   }
 
@@ -224,13 +302,17 @@ async function lookupBook() {
       const book = data?.[0];
 
       if (book?.summary) {
-        setBookInfo({
-          title: book.summary.title || "タイトル不明",
-          authors: book.summary.author || "-",
-          publisher: book.summary.publisher || "-",
-          thumb: book.summary.cover || ""
-        });
-        updateSearchLinks(book.summary.title || isbn);
+        const title = book.summary.title || "タイトル不明";
+        const authors = book.summary.author || "-";
+        const publisher = book.summary.publisher || "-";
+        const thumb = book.summary.cover || "";
+
+        setBookInfo({ title, authors, publisher, thumb });
+        updateSearchLinks(title);
+
+        if (listPrice && !listPrice.value) {
+          listPrice.value = "";
+        }
         return;
       }
     }
@@ -247,13 +329,13 @@ async function lookupBook() {
 
       if (item?.volumeInfo) {
         const info = item.volumeInfo;
-        setBookInfo({
-          title: info.title || "タイトル不明",
-          authors: Array.isArray(info.authors) ? info.authors.join(" / ") : "-",
-          publisher: info.publisher || "-",
-          thumb: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ""
-        });
-        updateSearchLinks(info.title || isbn);
+        const title = info.title || "タイトル不明";
+        const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+        const publisher = info.publisher || "-";
+        const thumb = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || "";
+
+        setBookInfo({ title, authors, publisher, thumb });
+        updateSearchLinks(title);
         return;
       }
     }
@@ -262,9 +344,131 @@ async function lookupBook() {
   }
 
   setBookInfoEmpty("書誌取得不可");
-  authorsEl.textContent = "検索リンクで確認してください";
+  if (authorsEl) authorsEl.textContent = "検索リンクで確認してください";
   updateSearchLinks(isbn);
   alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
 }
 
-console.log("app-test.js 読み込みOK");
+// --------------------
+// 利益計算
+// --------------------
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatYen(value) {
+  return `${Math.round(value).toLocaleString("ja-JP")}円`;
+}
+
+function calcProfit() {
+  const sell = toNumber(sellPrice?.value);
+  const buy = toNumber(buyPrice?.value);
+  const ship = toNumber(shipping?.value);
+  const rate = toNumber(feeRate?.value);
+  const line = toNumber(threshold?.value);
+
+  const fee = Math.round(sell * (rate / 100));
+  const profit = sell - fee - buy - ship;
+
+  if (feeYen) feeYen.textContent = formatYen(fee);
+  if (profitEl) profitEl.textContent = formatYen(profit);
+
+  if (judgeEl) {
+    let text = "-";
+
+    if (sell <= 0) {
+      text = "未入力";
+    } else if (profit >= line) {
+      text = "買い";
+    } else if (profit >= 0) {
+      text = "微妙";
+    } else {
+      text = "見送り";
+    }
+
+    judgeEl.textContent = text;
+
+    judgeEl.style.borderColor = "";
+    judgeEl.style.color = "";
+
+    if (text === "買い") {
+      judgeEl.style.borderColor = "rgba(72,209,122,.6)";
+      judgeEl.style.color = "#48d17a";
+    } else if (text === "微妙") {
+      judgeEl.style.borderColor = "rgba(255,200,80,.6)";
+      judgeEl.style.color = "#ffc850";
+    } else if (text === "見送り") {
+      judgeEl.style.borderColor = "rgba(255,90,107,.6)";
+      judgeEl.style.color = "#ff5a6b";
+    }
+  }
+}
+
+// --------------------
+// 出品文生成
+// --------------------
+function getSafeText(el, fallback = "") {
+  const text = el?.textContent?.trim();
+  return text && text !== "-" ? text : fallback;
+}
+
+function generateListingText() {
+  const title = getSafeText(titleEl, "タイトル不明");
+  const authors = getSafeText(authorsEl, "-");
+  const publisher = getSafeText(publisherEl, "-");
+  const price = listPrice?.value?.trim() || "";
+  const cond = condition?.value || "目立った傷や汚れなし";
+  const extra = note?.value?.trim() || "";
+  const isbn = normalizeIsbn(isbnInput?.value || "");
+
+  const lines = [
+    `${title}`,
+    "",
+    `【商品情報】`,
+    `・著者：${authors}`,
+    `・出版社：${publisher}`,
+    isbn ? `・ISBN：${isbn}` : "",
+    price ? `・販売価格：${price}円` : "",
+    `・状態：${cond}`,
+    "",
+    `【商品説明】`,
+    `${title} の出品です。`,
+    `中古本のため、多少の使用感はある場合があります。`,
+    extra ? `補足：${extra}` : "",
+    `状態は写真でもご確認ください。`,
+    "",
+    `【発送について】`,
+    `防水対策をして発送します。`,
+    `よろしくお願いいたします。`
+  ].filter(Boolean);
+
+  if (output) {
+    output.value = lines.join("\n");
+  }
+
+  if (btnCopy) {
+    btnCopy.disabled = !output?.value;
+  }
+
+  if (copyMsg) {
+    copyMsg.textContent = "テキストを生成しました。";
+  }
+}
+
+async function copyListingText() {
+  const text = output?.value || "";
+
+  if (!text) {
+    if (copyMsg) copyMsg.textContent = "先にテキストを生成してください。";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    if (copyMsg) copyMsg.textContent = "コピーしました。";
+  } catch (e) {
+    console.error("コピー失敗", e);
+    if (copyMsg) copyMsg.textContent = "コピーに失敗しました。手動でコピーしてください。";
+  }
+}
