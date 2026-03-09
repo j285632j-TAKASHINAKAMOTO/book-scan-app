@@ -311,7 +311,11 @@ function onBarcodeDetected(text) {
 
   if (!normalized) return;
 
-  if (normalized === lastScannedText && now - lastScanAt < 2000) {
+  // ISBN候補として短すぎるものは無視
+  if (normalized.length < 8) return;
+
+  // 同じものの連続検出を抑制
+  if (normalized === lastScannedText && now - lastScanAt < 3000) {
     return;
   }
 
@@ -324,7 +328,7 @@ function onBarcodeDetected(text) {
 
   updateSearchLinks(normalized);
 
-  // 読み取れたら停止
+  // 読み取り後はすぐ停止
   stopCamera();
 
   if (isValidIsbn13(normalized)) {
