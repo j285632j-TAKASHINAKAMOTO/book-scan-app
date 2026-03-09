@@ -481,7 +481,7 @@ async function lookupBook() {
           const title = book.summary.title || "タイトル不明";
           const authors = book.summary.author || "-";
           const publisher = book.summary.publisher || "-";
-          const thumb = book.summary.cover || "";
+          const thumb = (book.summary.cover || "").replace("http://", "https://");
 
           setBookInfo({ title, authors, publisher, thumb });
           updateSearchLinks(title);
