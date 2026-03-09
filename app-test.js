@@ -106,3 +106,114 @@ async function startCamera() {
     stopCamera();
   }
 }
+
+const $ = (id) => document.getElementById(id);
+
+// カメラ
+const btnStart = $("btnStart");
+const btnStop = $("btnStop");
+const video = $("video");
+
+// ISBN / 取得
+const isbnInput = $("isbn");
+const btnLookup = $("btnLookup");
+
+// 書籍情報
+const titleEl = $("title");
+const authorsEl = $("authors");
+const publisherEl = $("publisher");
+const thumbEl = $("thumb");
+
+// 検索リンク
+const linkMercari = $("linkMercari");
+const linkRakuma = $("linkRakuma");
+const linkYahoo = $("linkYahoo");
+
+// すでにあるカメラ処理の下でも上でもOK
+btnLookup.addEventListener("click", lookupBook);
+
+// Enterキーでも取得できるようにする
+isbnInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    lookupBook();
+  }
+});
+
+function normalizeIsbn(value) {
+  return value.replace(/[^0-9Xx]/g, "").toUpperCase();
+}
+
+function setBookInfoEmpty(message = "-") {
+  titleEl.textContent = message;
+  authorsEl.textContent = "-";
+  publisherEl.textContent = "-";
+  thumbEl.removeAttribute("src");
+  thumbEl.style.display = "none";
+}
+
+function updateSearchLinks(keyword) {
+  const q = encodeURIComponent(keyword || isbnInput.value || "");
+  linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
+  linkRakuma.href = `https://fril.jp/s?query=${q}`;
+  linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+}
+
+async function lookupBook() {
+  const raw = isbnInput.value.trim();
+  const isbn = normalizeIsbn(raw);
+
+  if (!isbn) {
+    alert("ISBNを入力してください。");
+    return;
+  }
+
+  titleEl.textContent = "取得中...";
+  authorsEl.textContent = "-";
+  publisherEl.textContent = "-";
+  thumbEl.removeAttribute("src");
+  thumbEl.style.display = "none";
+
+  updateSearchLinks(isbn);
+
+  try {
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const item = data.items?.[0];
+
+    if (!item) {
+      setBookInfoEmpty("見つかりませんでした");
+      return;
+    }
+
+    const info = item.volumeInfo || {};
+    const title = info.title || "タイトル不明";
+    const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+    const publisher = info.publisher || "-";
+    const thumb =
+      info.imageLinks?.thumbnail ||
+      info.imageLinks?.smallThumbnail ||
+      "";
+
+    titleEl.textContent = title;
+    authorsEl.textContent = authors;
+    publisherEl.textContent = publisher;
+
+    if (thumb) {
+      thumbEl.src = thumb.replace("http://", "https://");
+      thumbEl.style.display = "block";
+    } else {
+      thumbEl.removeAttribute("src");
+      thumbEl.style.display = "none";
+    }
+
+    updateSearchLinks(title);
+  } catch (e) {
+    console.error(e);
+    setBookInfoEmpty("取得エラー");
+    alert("書籍情報を取得できませんでした。");
+  }
+}
