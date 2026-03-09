@@ -64,14 +64,11 @@
   .hint-inline{color:var(--muted); font-size:12px}
   
   .book{display:flex; gap:12px; align-items:flex-start}
-  .thumb{
-  width:88px;
-  height:120px;
-  object-fit:cover;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:#0f1320;
-  display:block;
+
+ .thumb {
+  width: 120px;
+  min-width: 120px;
+  height: auto;
 }
   .book-meta{flex:1}
   .meta-row{display:flex; gap:10px; margin:6px 0}
@@ -148,5 +145,6 @@
   border-radius: 12px;
   border: 1px solid var(--line);
 }
+
 
 
