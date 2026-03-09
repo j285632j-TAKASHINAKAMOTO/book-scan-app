@@ -161,10 +161,10 @@ async function lookupBook() {
   }
 
   if (!isValidIsbn13(isbn)) {
-  setBookInfoEmpty("ISBN誤り");
-  alert("ISBNの数字が正しくない可能性があります。");
-  return;
-}
+    setBookInfoEmpty("ISBN誤り");
+    alert("ISBNの数字が正しくない可能性があります。");
+    return;
+  }
 
   titleEl.textContent = "取得中...";
   authorsEl.textContent = "-";
@@ -218,52 +218,38 @@ async function lookupBook() {
     const googleData = await googleRes.json();
     const item = googleData.items?.[0];
 
-    if (!item) {
-      setBookInfoEmpty("見つかりませんでした");
+    if (item) {
+      const info = item.volumeInfo || {};
+      const title = info.title || "タイトル不明";
+      const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+      const publisher = info.publisher || "-";
+      const thumb =
+        info.imageLinks?.thumbnail ||
+        info.imageLinks?.smallThumbnail ||
+        "";
+
+      titleEl.textContent = title;
+      authorsEl.textContent = authors;
+      publisherEl.textContent = publisher;
+
+      if (thumb) {
+        thumbEl.src = thumb.replace("http://", "https://");
+        thumbEl.style.display = "block";
+      } else {
+        thumbEl.removeAttribute("src");
+        thumbEl.style.display = "none";
+      }
+
+      updateSearchLinks(title);
       return;
     }
-
-    const info = item.volumeInfo || {};
-    const title = info.title || "タイトル不明";
-    const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
-    const publisher = info.publisher || "-";
-    const thumb =
-      info.imageLinks?.thumbnail ||
-      info.imageLinks?.smallThumbnail ||
-      "";
-
-    titleEl.textContent = title;
-    authorsEl.textContent = authors;
-    publisherEl.textContent = publisher;
-
-    if (thumb) {
-      thumbEl.src = thumb.replace("http://", "https://");
-      thumbEl.style.display = "block";
-    } else {
-      thumbEl.removeAttribute("src");
-      thumbEl.style.display = "none";
-    }
-
-    updateSearchLinks(title);
-    return;
   } catch (e) {
     console.error("Google Books取得失敗:", e);
   }
 
   // ③ 両方ダメだったとき
-  setBookInfoEmpty("取得エラー");
-  alert("書籍情報を取得できませんでした。");
-}
-
-function isValidIsbn13(isbn) {
-  if (!/^\d{13}$/.test(isbn)) return false;
-
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    const digit = Number(isbn[i]);
-    sum += (i % 2 === 0) ? digit : digit * 3;
-  }
-
-  const checkDigit = (10 - (sum % 10)) % 10;
-  return checkDigit === Number(isbn[12]);
+  setBookInfoEmpty("書誌取得不可");
+  authorsEl.textContent = "検索リンクで確認してください";
+  publisherEl.textContent = "-";
+  alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
 }
