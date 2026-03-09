@@ -169,13 +169,48 @@ async function lookupBook() {
   updateSearchLinks(isbn);
 
   try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+    // ① まず openBD を試す
+    const openBdRes = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
+    if (!openBdRes.ok) {
+      throw new Error(`openBD HTTP ${openBdRes.status}`);
     }
 
-    const data = await res.json();
-    const item = data.items?.[0];
+    const openBdData = await openBdRes.json();
+    const book = openBdData?.[0];
+
+    if (book) {
+      const summary = book.summary || {};
+      const title = summary.title || "タイトル不明";
+      const authors = summary.author || "-";
+      const publisher = summary.publisher || "-";
+      const thumb =
+        summary.cover ||
+        "";
+
+      titleEl.textContent = title;
+      authorsEl.textContent = authors;
+      publisherEl.textContent = publisher;
+
+      if (thumb) {
+        thumbEl.src = thumb.replace("http://", "https://");
+        thumbEl.style.display = "block";
+      } else {
+        thumbEl.removeAttribute("src");
+        thumbEl.style.display = "none";
+      }
+
+      updateSearchLinks(title);
+      return;
+    }
+
+    // ② openBDで見つからなければ Google Books
+    const googleRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    if (!googleRes.ok) {
+      throw new Error(`Google Books HTTP ${googleRes.status}`);
+    }
+
+    const googleData = await googleRes.json();
+    const item = googleData.items?.[0];
 
     if (!item) {
       setBookInfoEmpty("見つかりませんでした");
@@ -204,9 +239,10 @@ async function lookupBook() {
     }
 
     updateSearchLinks(title);
+
   } catch (e) {
-    console.error(e);
+    console.error("lookupBook error:", e);
     setBookInfoEmpty("取得エラー");
-    alert("書籍情報を取得できませんでした。");
+    alert(`書籍情報を取得できませんでした。\n${e.message}`);
   }
 }
