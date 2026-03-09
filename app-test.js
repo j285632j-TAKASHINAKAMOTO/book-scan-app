@@ -160,6 +160,18 @@ async function lookupBook() {
     return;
   }
 
+  if (!isValidIsbn13(isbn)) {
+  setBookInfoEmpty("ISBN誤り");
+  alert("ISBNの数字が正しくない可能性があります。");
+  return;
+}
+
+  if (!isValidIsbn13(isbn)) {
+  setBookInfoEmpty("ISBN誤り");
+  alert("ISBNの数字が正しくない可能性があります。");
+  return;
+}
+
   titleEl.textContent = "取得中...";
   authorsEl.textContent = "-";
   publisherEl.textContent = "-";
@@ -247,4 +259,17 @@ async function lookupBook() {
   // ③ 両方ダメだったとき
   setBookInfoEmpty("取得エラー");
   alert("書籍情報を取得できませんでした。");
+}
+
+function isValidIsbn13(isbn) {
+  if (!/^\d{13}$/.test(isbn)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    const digit = Number(isbn[i]);
+    sum += (i % 2 === 0) ? digit : digit * 3;
+  }
+
+  const checkDigit = (10 - (sum % 10)) % 10;
+  return checkDigit === Number(isbn[12]);
 }
