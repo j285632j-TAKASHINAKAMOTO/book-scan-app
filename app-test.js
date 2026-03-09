@@ -63,7 +63,7 @@ function init() {
     console.log("init 開始");
 
     // ボタンイベント
-    btnStart?.addEventListener("click", startCamera);
+    btnStart?.addEventListener("click", startCameraAndScan);
     btnStop?.addEventListener("click", stopCamera);
     btnLookup?.addEventListener("click", lookupBook);
 
