@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 
-console.log("app-test.js 完成版 読み込み開始");
+console.log("app-test.js 安定版 読み込み開始");
 
 // --------------------
 // 要素取得
@@ -55,6 +55,7 @@ let streamRef = null;
 let scanReader = null;
 let scanActive = false;
 let lastScannedText = "";
+let lastScanAt = 0;
 let isLookingUp = false;
 
 // --------------------
@@ -292,13 +293,15 @@ async function startBarcodeScanning() {
   }
 }
 
-function onBarcodeDetected(text) {
+async function onBarcodeDetected(text) {
   const now = Date.now();
   const normalized = normalizeIsbn(text);
 
-  console.log("読み取り:", normalized);
+  console.log("読み取り raw:", text);
+  console.log("読み取り normalized:", normalized);
 
   if (!normalized) return;
+  if (isLookingUp) return;
 
   if (normalized === lastScannedText && now - lastScanAt < 5000) {
     return;
@@ -313,11 +316,14 @@ function onBarcodeDetected(text) {
 
   updateSearchLinks(normalized);
 
-  // カメラ停止
+  // 先に停止
   stopCamera();
 
-  // ★ISBN判定を外して必ず検索
-  lookupBook();
+  // 少し待ってから取得
+  setTimeout(() => {
+    console.log("lookupBook 呼び出し前 isbn:", isbnInput?.value);
+    lookupBook();
+  }, 300);
 }
 
 // --------------------
@@ -434,6 +440,7 @@ function updateSearchLinks(keyword) {
 
 async function lookupBook() {
   if (isLookingUp) {
+    console.log("lookupBook: 取得中なのでスキップ");
     return;
   }
 
@@ -441,9 +448,12 @@ async function lookupBook() {
 
   try {
     console.log("lookupBook 実行");
+    console.log("lookupBook isbnInput:", isbnInput?.value);
 
     const raw = isbnInput?.value?.trim() || "";
     const isbn = normalizeIsbn(raw);
+
+    console.log("lookupBook normalized:", isbn);
 
     if (!isbn) {
       alert("ISBNを入力してください。");
