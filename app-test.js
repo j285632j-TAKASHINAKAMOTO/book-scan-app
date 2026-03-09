@@ -168,42 +168,42 @@ async function lookupBook() {
 
   updateSearchLinks(isbn);
 
+  // ① openBD を試す
   try {
-    // ① まず openBD を試す
     const openBdRes = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
-    if (!openBdRes.ok) {
-      throw new Error(`openBD HTTP ${openBdRes.status}`);
-    }
+    if (openBdRes.ok) {
+      const openBdData = await openBdRes.json();
+      const book = openBdData?.[0];
 
-    const openBdData = await openBdRes.json();
-    const book = openBdData?.[0];
+      if (book) {
+        const summary = book.summary || {};
+        const title = summary.title || "タイトル不明";
+        const authors = summary.author || "-";
+        const publisher = summary.publisher || "-";
+        const thumb = summary.cover || "";
 
-    if (book) {
-      const summary = book.summary || {};
-      const title = summary.title || "タイトル不明";
-      const authors = summary.author || "-";
-      const publisher = summary.publisher || "-";
-      const thumb =
-        summary.cover ||
-        "";
+        titleEl.textContent = title;
+        authorsEl.textContent = authors;
+        publisherEl.textContent = publisher;
 
-      titleEl.textContent = title;
-      authorsEl.textContent = authors;
-      publisherEl.textContent = publisher;
+        if (thumb) {
+          thumbEl.src = thumb.replace("http://", "https://");
+          thumbEl.style.display = "block";
+        } else {
+          thumbEl.removeAttribute("src");
+          thumbEl.style.display = "none";
+        }
 
-      if (thumb) {
-        thumbEl.src = thumb.replace("http://", "https://");
-        thumbEl.style.display = "block";
-      } else {
-        thumbEl.removeAttribute("src");
-        thumbEl.style.display = "none";
+        updateSearchLinks(title);
+        return;
       }
-
-      updateSearchLinks(title);
-      return;
     }
+  } catch (e) {
+    console.warn("openBD取得失敗。Google Booksに切り替えます。", e);
+  }
 
-    // ② openBDで見つからなければ Google Books
+  // ② Google Books を試す
+  try {
     const googleRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
     if (!googleRes.ok) {
       throw new Error(`Google Books HTTP ${googleRes.status}`);
@@ -239,10 +239,12 @@ async function lookupBook() {
     }
 
     updateSearchLinks(title);
-
+    return;
   } catch (e) {
-    console.error("lookupBook error:", e);
-    setBookInfoEmpty("取得エラー");
-    alert(`書籍情報を取得できませんでした。\n${e.message}`);
+    console.error("Google Books取得失敗:", e);
   }
+
+  // ③ 両方ダメだったとき
+  setBookInfoEmpty("取得エラー");
+  alert("書籍情報を取得できませんでした。");
 }
