@@ -439,6 +439,12 @@ function updateSearchLinks(keyword) {
 }
 
 async function lookupBook() {
+  if (isLookingUp) {
+    return;
+  }
+
+  isLookingUp = true;
+
   try {
     console.log("lookupBook 実行");
 
@@ -517,6 +523,8 @@ async function lookupBook() {
   } catch (e) {
     console.error("lookupBook全体エラー:", e);
     alert("取得処理でエラーが発生しました。");
+  } finally {
+    isLookingUp = false;
   }
 }
 
