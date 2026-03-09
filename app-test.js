@@ -22,35 +22,49 @@ const linkYahoo = $("linkYahoo");
 
 let streamRef = null;
 
-btnStart.addEventListener("click", startCamera);
-btnStop.addEventListener("click", stopCamera);
-btnLookup.addEventListener("click", lookupBook);
+// 初期化
+btnStart?.addEventListener("click", startCamera);
+btnStop?.addEventListener("click", stopCamera);
+btnLookup?.addEventListener("click", lookupBook);
 
-isbnInput.addEventListener("keydown", (e) => {
+isbnInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     lookupBook();
   }
 });
 
+updateSearchLinks("");
+
+// --------------------
+// カメラ
+// --------------------
 function stopCamera() {
   if (streamRef) {
-    streamRef.getTracks().forEach(track => track.stop());
+    streamRef.getTracks().forEach((track) => track.stop());
     streamRef = null;
   }
 
-  video.pause();
-  video.srcObject = null;
+  if (video) {
+    video.pause();
+    video.srcObject = null;
+  }
 
-  btnStart.disabled = false;
-  btnStop.disabled = true;
+  if (btnStart) btnStart.disabled = false;
+  if (btnStop) btnStop.disabled = true;
 }
 
 function waitForVideoReady(videoEl) {
   return new Promise((resolve) => {
+    if (!videoEl) {
+      resolve();
+      return;
+    }
+
     if (videoEl.readyState >= 1) {
       resolve();
       return;
     }
+
     videoEl.onloadedmetadata = () => resolve();
   });
 }
@@ -71,12 +85,12 @@ async function getBackCameraStream() {
     video: true,
     audio: false
   });
-  tempStream.getTracks().forEach(track => track.stop());
+  tempStream.getTracks().forEach((track) => track.stop());
 
   const devices = await navigator.mediaDevices.enumerateDevices();
-  const videos = devices.filter(d => d.kind === "videoinput");
+  const videos = devices.filter((d) => d.kind === "videoinput");
 
-  let backCam = videos.find(v =>
+  let backCam = videos.find((v) =>
     /back|rear|environment|背面|外側/i.test(v.label)
   );
 
@@ -132,8 +146,24 @@ async function startCamera() {
   }
 }
 
+// --------------------
+// 書籍情報
+// --------------------
 function normalizeIsbn(value) {
-  return value.replace(/[^0-9Xx]/g, "").toUpperCase();
+  return (value || "").replace(/[^0-9Xx]/g, "").toUpperCase();
+}
+
+function isValidIsbn13(isbn) {
+  if (!/^\d{13}$/.test(isbn)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    const digit = Number(isbn[i]);
+    sum += i % 2 === 0 ? digit : digit * 3;
+  }
+
+  const checkDigit = (10 - (sum % 10)) % 10;
+  return checkDigit === Number(isbn[12]);
 }
 
 function setBookInfoEmpty(message = "-") {
@@ -144,14 +174,30 @@ function setBookInfoEmpty(message = "-") {
   thumbEl.style.display = "none";
 }
 
+function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }) {
+  titleEl.textContent = title;
+  authorsEl.textContent = authors;
+  publisherEl.textContent = publisher;
+
+  if (thumb) {
+    thumbEl.src = thumb.replace("http://", "https://");
+    thumbEl.style.display = "block";
+  } else {
+    thumbEl.removeAttribute("src");
+    thumbEl.style.display = "none";
+  }
+}
+
 function updateSearchLinks(keyword) {
-  const q = encodeURIComponent(keyword || isbnInput.value || "");
-  linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
-  linkRakuma.href = `https://fril.jp/s?query=${q}`;
-  linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
+  const q = encodeURIComponent(keyword || isbnInput?.value || "");
+  if (linkMercari) linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
+  if (linkRakuma) linkRakuma.href = `https://fril.jp/s?query=${q}`;
+  if (linkYahoo) linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
 }
 
 async function lookupBook() {
+  console.log("lookupBook 実行");
+
   const raw = isbnInput.value.trim();
   const isbn = normalizeIsbn(raw);
 
@@ -163,94 +209,61 @@ async function lookupBook() {
   if (!isValidIsbn13(isbn)) {
     setBookInfoEmpty("ISBN誤り");
     alert("ISBNの数字が正しくない可能性があります。");
+    updateSearchLinks(isbn);
     return;
   }
 
-  titleEl.textContent = "取得中...";
-  authorsEl.textContent = "-";
-  publisherEl.textContent = "-";
-  thumbEl.removeAttribute("src");
-  thumbEl.style.display = "none";
-
+  setBookInfoEmpty("取得中...");
   updateSearchLinks(isbn);
 
-  // ① openBD
+  // 1) openBD
   try {
-    const openBdRes = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
-    if (openBdRes.ok) {
-      const openBdData = await openBdRes.json();
-      const book = openBdData?.[0];
+    const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
+    if (res.ok) {
+      const data = await res.json();
+      const book = data?.[0];
 
-      if (book) {
-        const summary = book.summary || {};
-        const title = summary.title || "タイトル不明";
-        const authors = summary.author || "-";
-        const publisher = summary.publisher || "-";
-        const thumb = summary.cover || "";
-
-        titleEl.textContent = title;
-        authorsEl.textContent = authors;
-        publisherEl.textContent = publisher;
-
-        if (thumb) {
-          thumbEl.src = thumb.replace("http://", "https://");
-          thumbEl.style.display = "block";
-        } else {
-          thumbEl.removeAttribute("src");
-          thumbEl.style.display = "none";
-        }
-
-        updateSearchLinks(title);
+      if (book?.summary) {
+        setBookInfo({
+          title: book.summary.title || "タイトル不明",
+          authors: book.summary.author || "-",
+          publisher: book.summary.publisher || "-",
+          thumb: book.summary.cover || ""
+        });
+        updateSearchLinks(book.summary.title || isbn);
         return;
       }
     }
   } catch (e) {
-    console.warn("openBD取得失敗。Google Booksに切り替えます。", e);
+    console.warn("openBD失敗", e);
   }
 
-  // ② Google Books
+  // 2) Google Books
   try {
-    const googleRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    if (!googleRes.ok) {
-      throw new Error(`Google Books HTTP ${googleRes.status}`);
-    }
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    if (res.ok) {
+      const data = await res.json();
+      const item = data?.items?.[0];
 
-    const googleData = await googleRes.json();
-    const item = googleData.items?.[0];
-
-    if (item) {
-      const info = item.volumeInfo || {};
-      const title = info.title || "タイトル不明";
-      const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
-      const publisher = info.publisher || "-";
-      const thumb =
-        info.imageLinks?.thumbnail ||
-        info.imageLinks?.smallThumbnail ||
-        "";
-
-      titleEl.textContent = title;
-      authorsEl.textContent = authors;
-      publisherEl.textContent = publisher;
-
-      if (thumb) {
-        thumbEl.src = thumb.replace("http://", "https://");
-        thumbEl.style.display = "block";
-      } else {
-        thumbEl.removeAttribute("src");
-        thumbEl.style.display = "none";
+      if (item?.volumeInfo) {
+        const info = item.volumeInfo;
+        setBookInfo({
+          title: info.title || "タイトル不明",
+          authors: Array.isArray(info.authors) ? info.authors.join(" / ") : "-",
+          publisher: info.publisher || "-",
+          thumb: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ""
+        });
+        updateSearchLinks(info.title || isbn);
+        return;
       }
-
-      updateSearchLinks(title);
-      return;
     }
   } catch (e) {
-    console.error("Google Books取得失敗:", e);
+    console.warn("Google Books失敗", e);
   }
 
-  // ③ 両方ダメ
   setBookInfoEmpty("書誌取得不可");
   authorsEl.textContent = "検索リンクで確認してください";
-  publisherEl.textContent = "-";
+  updateSearchLinks(isbn);
   alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
 }
 
