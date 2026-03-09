@@ -174,7 +174,7 @@ async function lookupBook() {
 
   updateSearchLinks(isbn);
 
-  // ① openBD を試す
+  // ① openBD
   try {
     const openBdRes = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
     if (openBdRes.ok) {
@@ -208,7 +208,7 @@ async function lookupBook() {
     console.warn("openBD取得失敗。Google Booksに切り替えます。", e);
   }
 
-  // ② Google Books を試す
+  // ② Google Books
   try {
     const googleRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
     if (!googleRes.ok) {
@@ -247,10 +247,11 @@ async function lookupBook() {
     console.error("Google Books取得失敗:", e);
   }
 
-  
-  // ③ 両方ダメだったとき
+  // ③ 両方ダメ
   setBookInfoEmpty("書誌取得不可");
   authorsEl.textContent = "検索リンクで確認してください";
   publisherEl.textContent = "-";
   alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
 }
+
+console.log("app-test.js 読み込みOK");
