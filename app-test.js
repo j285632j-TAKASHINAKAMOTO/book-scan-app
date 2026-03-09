@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 
-console.log("app-test.js 安全版 読み込み開始");
+console.log("app-test.js 完成版 読み込み開始");
 
 // --------------------
 // 要素取得
@@ -52,6 +52,10 @@ const output = $("output");
 const copyMsg = $("copyMsg");
 
 let streamRef = null;
+let scanReader = null;
+let scanActive = false;
+let lastScannedText = "";
+let lastScanAt = 0;
 
 // --------------------
 // 初期化
@@ -62,8 +66,7 @@ function init() {
   try {
     console.log("init 開始");
 
-    // ボタンイベント
-    btnStart?.addEventListener("click", startCamera);
+    btnStart?.addEventListener("click", startCameraAndScan);
     btnStop?.addEventListener("click", stopCamera);
     btnLookup?.addEventListener("click", lookupBook);
 
@@ -105,15 +108,29 @@ function init() {
     console.log("init 完了");
   } catch (e) {
     console.error("initエラー:", e);
-    alert("初期化でエラーが発生しました。コンソールを確認してください。");
+    alert("初期化でエラーが発生しました。");
   }
 }
 
 // --------------------
-// カメラ
+// カメラ・スキャナー
 // --------------------
+function resetScanner() {
+  try {
+    if (scanReader && typeof scanReader.reset === "function") {
+      scanReader.reset();
+    }
+  } catch (e) {
+    console.warn("scanner reset warning:", e);
+  }
+  scanReader = null;
+  scanActive = false;
+}
+
 function stopCamera() {
   try {
+    resetScanner();
+
     if (streamRef) {
       streamRef.getTracks().forEach((track) => track.stop());
       streamRef = null;
@@ -191,9 +208,9 @@ async function getBackCameraStream() {
   });
 }
 
-async function startCamera() {
+async function startCameraAndScan() {
   try {
-    console.log("startCamera 実行");
+    console.log("startCameraAndScan 実行");
 
     stopCamera();
 
@@ -207,12 +224,12 @@ async function startCamera() {
       return;
     }
 
-    streamRef = await getBackCameraStream();
-
     if (!video) {
       alert("video要素が見つかりません。");
       return;
     }
+
+    streamRef = await getBackCameraStream();
 
     video.setAttribute("playsinline", "true");
     video.muted = true;
@@ -222,12 +239,87 @@ async function startCamera() {
     await waitForVideoReady(video);
     await video.play();
 
+    console.log("カメラ起動OK");
+
     if (btnStart) btnStart.disabled = true;
     if (btnStop) btnStop.disabled = false;
+
+    await startBarcodeScanning();
   } catch (e) {
-    console.error("startCameraエラー:", e);
+    console.error("startCameraAndScanエラー:", e);
     alert(`カメラを起動できませんでした: ${e.name} / ${e.message}`);
     stopCamera();
+  }
+}
+
+async function startBarcodeScanning() {
+  try {
+    if (scanActive) return;
+
+    console.log("ZXing 読み込み開始");
+
+    const zxing = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
+    const BrowserMultiFormatReader = zxing.BrowserMultiFormatReader;
+
+    scanReader = new BrowserMultiFormatReader();
+    scanActive = true;
+
+    console.log("ZXing スキャン開始");
+
+    scanReader.decodeFromConstraints(
+      {
+        video: {
+          facingMode: "environment"
+        }
+      },
+      video,
+      (result, error) => {
+        if (result) {
+          const text = result.getText();
+          console.log("読み取り成功:", text);
+          onBarcodeDetected(text);
+          return;
+        }
+
+        if (error && error.name !== "NotFoundException") {
+          console.warn("scan error:", error);
+        }
+      }
+    );
+  } catch (e) {
+    console.error("ZXingエラー:", e);
+    alert("バーコード読み取りの初期化に失敗しました");
+  }
+}
+
+function onBarcodeDetected(text) {
+  const now = Date.now();
+  const normalized = normalizeIsbn(text);
+
+  console.log("onBarcodeDetected:", normalized);
+
+  if (!normalized) return;
+
+  if (normalized === lastScannedText && now - lastScanAt < 2000) {
+    return;
+  }
+
+  lastScannedText = normalized;
+  lastScanAt = now;
+
+  if (isbnInput) {
+    isbnInput.value = normalized;
+  }
+
+  updateSearchLinks(normalized);
+
+  // 読み取れたら停止
+  stopCamera();
+
+  if (isValidIsbn13(normalized)) {
+    lookupBook();
+  } else {
+    alert(`読み取り結果: ${normalized}`);
   }
 }
 
@@ -285,7 +377,10 @@ function setBookInfoEmpty(message = "-") {
   if (publisherEl) publisherEl.textContent = "-";
 
   if (thumbEl) {
+    thumbEl.onload = null;
+    thumbEl.onerror = null;
     thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙なし";
     thumbEl.style.display = "none";
   }
 }
@@ -295,15 +390,35 @@ function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
 
-  if (thumbEl) {
-    if (thumb) {
-      thumbEl.src = thumb.replace("http://", "https://");
-      thumbEl.style.display = "block";
-    } else {
-      thumbEl.removeAttribute("src");
-      thumbEl.style.display = "none";
-    }
+  if (!thumbEl) return;
+
+  const safeThumb = String(thumb || "").trim().replace("http://", "https://");
+
+  thumbEl.onload = null;
+  thumbEl.onerror = null;
+
+  if (!safeThumb) {
+    console.log("表紙URLなし");
+    thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙なし";
+    thumbEl.style.display = "none";
+    return;
   }
+
+  thumbEl.onload = () => {
+    console.log("表紙画像 読み込み成功:", safeThumb);
+    thumbEl.style.display = "block";
+  };
+
+  thumbEl.onerror = () => {
+    console.log("表紙画像 読み込み失敗:", safeThumb);
+    thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙読み込み失敗";
+    thumbEl.style.display = "none";
+  };
+
+  thumbEl.src = safeThumb;
+  thumbEl.alt = `${title} の表紙`;
 }
 
 function updateSearchLinks(keyword) {
@@ -379,6 +494,8 @@ async function lookupBook() {
           const thumb =
             info.imageLinks?.thumbnail ||
             info.imageLinks?.smallThumbnail ||
+            info.imageLinks?.small ||
+            info.imageLinks?.medium ||
             "";
 
           setBookInfo({ title, authors, publisher, thumb });
