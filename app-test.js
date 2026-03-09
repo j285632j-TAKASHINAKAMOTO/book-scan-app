@@ -1,11 +1,36 @@
-const btnStart = document.getElementById("btnStart");
-const btnStop = document.getElementById("btnStop");
-const video = document.getElementById("video");
+const $ = (id) => document.getElementById(id);
+
+// カメラ
+const btnStart = $("btnStart");
+const btnStop = $("btnStop");
+const video = $("video");
+
+// ISBN / 取得
+const isbnInput = $("isbn");
+const btnLookup = $("btnLookup");
+
+// 書籍情報
+const titleEl = $("title");
+const authorsEl = $("authors");
+const publisherEl = $("publisher");
+const thumbEl = $("thumb");
+
+// 検索リンク
+const linkMercari = $("linkMercari");
+const linkRakuma = $("linkRakuma");
+const linkYahoo = $("linkYahoo");
 
 let streamRef = null;
 
 btnStart.addEventListener("click", startCamera);
 btnStop.addEventListener("click", stopCamera);
+btnLookup.addEventListener("click", lookupBook);
+
+isbnInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    lookupBook();
+  }
+});
 
 function stopCamera() {
   if (streamRef) {
@@ -106,38 +131,6 @@ async function startCamera() {
     stopCamera();
   }
 }
-
-const $ = (id) => document.getElementById(id);
-
-// カメラ
-const btnStart = $("btnStart");
-const btnStop = $("btnStop");
-const video = $("video");
-
-// ISBN / 取得
-const isbnInput = $("isbn");
-const btnLookup = $("btnLookup");
-
-// 書籍情報
-const titleEl = $("title");
-const authorsEl = $("authors");
-const publisherEl = $("publisher");
-const thumbEl = $("thumb");
-
-// 検索リンク
-const linkMercari = $("linkMercari");
-const linkRakuma = $("linkRakuma");
-const linkYahoo = $("linkYahoo");
-
-// すでにあるカメラ処理の下でも上でもOK
-btnLookup.addEventListener("click", lookupBook);
-
-// Enterキーでも取得できるようにする
-isbnInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    lookupBook();
-  }
-});
 
 function normalizeIsbn(value) {
   return value.replace(/[^0-9Xx]/g, "").toUpperCase();
