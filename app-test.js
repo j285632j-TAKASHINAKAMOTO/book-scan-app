@@ -16,6 +16,12 @@ const titleEl = $("title");
 const authorsEl = $("authors");
 const publisherEl = $("publisher");
 const thumbEl = $("thumb");
+const thumb =
+  info.imageLinks?.thumbnail ||
+  info.imageLinks?.smallThumbnail ||
+  info.imageLinks?.small ||
+  info.imageLinks?.medium ||
+  "";
 
 const linkMercari = $("linkMercari");
 const linkRakuma = $("linkRakuma");
@@ -337,6 +343,7 @@ function setBookInfoEmpty(message = "-") {
 
   if (thumbEl) {
     thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙なし";
     thumbEl.style.display = "none";
   }
 }
@@ -346,17 +353,33 @@ function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
 
-  if (thumbEl) {
-    if (thumb) {
-      thumbEl.src = thumb.replace("http://", "https://");
-      thumbEl.style.display = "block";
-    } else {
-      thumbEl.removeAttribute("src");
-      thumbEl.style.display = "none";
-    }
-  }
-}
+  if (!thumbEl) return;
 
+  const safeThumb = (thumb || "").replace("http://", "https://").trim();
+
+  if (!safeThumb) {
+    console.log("表紙URLなし");
+    thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙なし";
+    thumbEl.style.display = "none";
+    return;
+  }
+
+  thumbEl.onload = () => {
+    console.log("表紙画像 読み込み成功:", safeThumb);
+    thumbEl.style.display = "block";
+  };
+
+  thumbEl.onerror = () => {
+    console.log("表紙画像 読み込み失敗:", safeThumb);
+    thumbEl.removeAttribute("src");
+    thumbEl.alt = "表紙読み込み失敗";
+    thumbEl.style.display = "none";
+  };
+
+  thumbEl.src = safeThumb;
+  thumbEl.alt = `${title} の表紙`;
+}
 function updateSearchLinks(keyword) {
   const q = encodeURIComponent(keyword || isbnInput?.value || "");
 
