@@ -56,6 +56,7 @@ let scanActive = false;
 let lastScannedText = "";
 let lastScanAt = 0;
 let isLookingUp = false;
+let bookSummary = "";
 
 // --------------------
 // 初期化
@@ -437,6 +438,8 @@ async function lookupBook() {
           const authors = book.summary.author || "-";
           const publisher = book.summary.publisher || "-";
 
+          bookSummary = "";
+
           setBookInfo({ title, authors, publisher });
           updateSearchLinks(title);
           return;
@@ -458,6 +461,10 @@ async function lookupBook() {
           const title = info.title || "タイトル不明";
           const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
           const publisher = info.publisher || "-";
+
+          let description = info.description || "";
+　　　　　description = description.replace(/<[^>]*>/g, ""); // HTML除去
+　　　　　bookSummary = description.substring(0,100);
 
           setBookInfo({ title, authors, publisher });
           updateSearchLinks(title);
@@ -572,6 +579,9 @@ function generateListingText() {
       `【商品説明】`,
       `${title} の出品です。`,
       `中古本のため、多少の使用感はある場合があります。`,
+
+      bookSummary ? `【内容紹介】${bookSummary}...` : "",
+      
       extra ? `補足：${extra}` : "",
       `状態は写真でもご確認ください。`,
       "",
