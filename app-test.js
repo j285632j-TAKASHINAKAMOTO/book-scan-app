@@ -451,29 +451,29 @@ async function lookupBook() {
 
     // Google Books
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-      if (res.ok) {
-        const data = await res.json();
-        const item = data?.items?.[0];
+  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+  if (res.ok) {
+    const data = await res.json();
+    const item = data?.items?.[0];
 
-        if (item?.volumeInfo) {
-          const info = item.volumeInfo;
-          const title = info.title || "タイトル不明";
-          const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
-          const publisher = info.publisher || "-";
+    if (item?.volumeInfo) {
+      const info = item.volumeInfo;
+      const title = info.title || "タイトル不明";
+      const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+      const publisher = info.publisher || "-";
 
-          let description = info.description || "";
-　　　　　description = description.replace(/<[^>]*>/g, ""); // HTML除去
-　　　　　bookSummary = description.substring(0,100);
+      let description = info.description || "";
+      description = description.replace(/<[^>]*>/g, "");
+      bookSummary = description.substring(0, 100);
 
-          setBookInfo({ title, authors, publisher });
-          updateSearchLinks(title);
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn("Google Books失敗:", e);
+      setBookInfo({ title, authors, publisher });
+      updateSearchLinks(title);
+      return;
     }
+  }
+} catch (e) {
+  console.warn("Google Books失敗:", e);
+}
 
     setBookInfoEmpty("書誌取得不可");
     if (authorsEl) authorsEl.textContent = "検索リンクで確認してください";
