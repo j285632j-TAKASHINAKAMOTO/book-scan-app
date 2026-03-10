@@ -418,14 +418,15 @@ async function lookupBook() {
 
     if (!isValidIsbn13(isbn)) {
       setBookInfoEmpty("ISBN誤り");
+      bookSummary = "";
       updateSearchLinks(isbn);
       alert("ISBNの数字が正しくない可能性があります。");
       return;
     }
 
     setBookInfoEmpty("取得中...");
-bookSummary = "";
-updateSearchLinks(isbn);
+    bookSummary = "";
+    updateSearchLinks(isbn);
 
     // openBD
     try {
@@ -450,33 +451,35 @@ updateSearchLinks(isbn);
       console.warn("openBD失敗:", e);
     }
 
-   // Google Books
-try {
-  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-  if (res.ok) {
-    const data = await res.json();
-    const item = data?.items?.[0];
+    // Google Books
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      if (res.ok) {
+        const data = await res.json();
+        const item = data?.items?.[0];
 
-    if (item?.volumeInfo) {
-      const info = item.volumeInfo;
-      const title = info.title || "タイトル不明";
-      const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
-      const publisher = info.publisher || "-";
+        if (item?.volumeInfo) {
+          const info = item.volumeInfo;
+          const title = info.title || "タイトル不明";
+          const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
+          const publisher = info.publisher || "-";
 
-      let description = info.description || "";
-      description = description.replace(/<[^>]*>/g, "");
-      bookSummary = description.substring(0, 100);
+          let description = info.description || "";
+          description = description.replace(/<[^>]*>/g, "");
+          description = description.replace(/\s+/g, " ").trim();
+          bookSummary = description.substring(0, 100);
 
-      setBookInfo({ title, authors, publisher });
-      updateSearchLinks(title);
-      return;
+          setBookInfo({ title, authors, publisher });
+          updateSearchLinks(title);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Google Books失敗:", e);
     }
-  }
-} catch (e) {
-  console.warn("Google Books失敗:", e);
-}
 
     setBookInfoEmpty("書誌取得不可");
+    bookSummary = "";
     if (authorsEl) authorsEl.textContent = "検索リンクで確認してください";
     updateSearchLinks(isbn);
     alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
@@ -567,6 +570,8 @@ function generateListingText() {
     const extra = note?.value?.trim() || "";
     const isbn = normalizeIsbn(isbnInput?.value || "");
 
+    const summaryLine = bookSummary ? `【内容紹介】${bookSummary}${bookSummary.length >= 100 ? "..." : ""}` : "";
+
     const lines = [
       `${title}`,
       "",
@@ -580,9 +585,7 @@ function generateListingText() {
       `【商品説明】`,
       `${title} の出品です。`,
       `中古本のため、多少の使用感はある場合があります。`,
-
-      bookSummary ? `【内容紹介】${bookSummary}...` : "",
-      
+      summaryLine,
       extra ? `補足：${extra}` : "",
       `状態は写真でもご確認ください。`,
       "",
