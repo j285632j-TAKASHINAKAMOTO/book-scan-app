@@ -103,19 +103,15 @@ select.input:focus{
 }
 
 .btn{
-  padding:10px 12px;
+  padding:12px 16px;
   border:1px solid var(--line);
-  border-radius:10px;
+  border-radius:12px;
   cursor:pointer;
   background:var(--primary);
   color:#ffffff;
   font-weight:600;
-  transition:.2s ease;
-
-  height:42px;      /* ここ変更 */
   font-size:14px;
 }
-
 .btn:hover{
   filter:brightness(1.08);
 }
@@ -270,16 +266,15 @@ select.input:focus{
 
 .seg-btn{
   flex:1;
-  padding:10px 12px;
-  height:42px;      /* 追加 */
+  padding:12px 16px;
   border-radius:12px;
   border:1px solid var(--line);
   background:var(--input);
   color:var(--text);
   cursor:pointer;
   font-weight:600;
-  transition:.2s ease;
 }
+
 .seg-btn:hover{
   border-color:rgba(58,109,240,.5);
 }
@@ -338,4 +333,5 @@ select.input:focus{
     width:auto;
   }
 }
+
 
