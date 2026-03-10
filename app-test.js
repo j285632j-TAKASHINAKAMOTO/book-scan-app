@@ -19,7 +19,6 @@ const btnLookup = $("btnLookup");
 const titleEl = $("title");
 const authorsEl = $("authors");
 const publisherEl = $("publisher");
-const thumbEl = $("thumb");
 
 // 検索リンク
 const linkMercari = $("linkMercari");
@@ -97,11 +96,7 @@ function init() {
     updateSearchLinks("");
     switchMode("buy");
     calcProfit();
-
-    if (thumbEl) {
-      thumbEl.style.display = "none";
-    }
-
+    
     if (btnCopy) {
       btnCopy.disabled = true;
     }
@@ -443,10 +438,7 @@ async function lookupBook() {
           const title = book.summary.title || "タイトル不明";
           const authors = book.summary.author || "-";
           const publisher = book.summary.publisher || "-";
-          const thumb = (book.summary.cover || "").replace("http://", "https://");
-          console.log("表紙URL:", thumb);
-
-          setBookInfo({ title, authors, publisher, thumb });
+          setBookInfo({ title, authors, publisher});
           updateSearchLinks(title);
           return;
         }
@@ -467,17 +459,8 @@ async function lookupBook() {
           const title = info.title || "タイトル不明";
           const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
           const publisher = info.publisher || "-";
-          const thumb =
-  (
-    info.imageLinks?.thumbnail ||
-    info.imageLinks?.smallThumbnail ||
-    info.imageLinks?.small ||
-    info.imageLinks?.medium ||
-    info.imageLinks?.large ||
-    ""
-  ).replace("http://", "https://");
 
-          setBookInfo({ title, authors, publisher, thumb });
+          setBookInfo({ title, authors, publisher});
           updateSearchLinks(title);
           return;
         }
