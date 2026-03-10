@@ -104,15 +104,16 @@ select.input:focus{
 
 .btn{
   padding:10px 12px;
-  height:44px;
   border:1px solid var(--line);
   border-radius:10px;
   cursor:pointer;
   background:var(--primary);
   color:#ffffff;
   font-weight:600;
-  font-size:14px;
   transition:.2s ease;
+
+  height:42px;      /* ここ変更 */
+  font-size:14px;
 }
 
 .btn:hover{
@@ -270,6 +271,7 @@ select.input:focus{
 .seg-btn{
   flex:1;
   padding:10px 12px;
+  height:42px;      /* 追加 */
   border-radius:12px;
   border:1px solid var(--line);
   background:var(--input);
@@ -278,7 +280,6 @@ select.input:focus{
   font-weight:600;
   transition:.2s ease;
 }
-
 .seg-btn:hover{
   border-color:rgba(58,109,240,.5);
 }
@@ -337,3 +338,4 @@ select.input:focus{
     width:auto;
   }
 }
+
