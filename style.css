@@ -334,4 +334,29 @@ select.input:focus{
   }
 }
 
+.video{
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 0 0 1px rgba(58,109,240,.15);
+}
+
+.card{
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+}
+
+.btn:active,
+.seg-btn:active{
+  transform: scale(.98);
+}
+
+.btn,
+.seg-btn,
+.link,
+.input,
+.textarea,
+select.input{
+  transition: .2s ease;
+}
+
+.video::after{
+  content:"";
+}
 
