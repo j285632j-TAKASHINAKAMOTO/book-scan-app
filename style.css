@@ -104,15 +104,15 @@ select.input:focus{
 
 .btn{
   padding:10px 12px;
+  height:44px;
   border:1px solid var(--line);
   border-radius:10px;
   cursor:pointer;
   background:var(--primary);
   color:#ffffff;
   font-weight:600;
+  font-size:14px;
   transition:.2s ease;
-  height:44px;
-font-size:14px;
 }
 
 .btn:hover{
@@ -140,13 +140,24 @@ font-size:14px;
 .btn.copy{
   background:var(--primary);
   border-color:rgba(58,109,240,.75);
-  color:white;
+  color:#ffffff;
 }
 
 .actions{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
+}
+
+/* 横並びボタン */
+.btn-row{
+  display:flex;
+  gap:8px;
+  width:100%;
+}
+
+.btn-row .btn{
+  flex:1;
 }
 
 .hint{
@@ -313,10 +324,6 @@ font-size:14px;
     flex-direction:column;
   }
 
-  .btn{
-    width:100%;
-  }
-
   .video{
     height:220px;
   }
@@ -330,5 +337,3 @@ font-size:14px;
     width:auto;
   }
 }
-
-
