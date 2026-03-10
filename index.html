@@ -25,8 +25,8 @@
       <div class="row">
         <label class="label">カメラ</label>
         <div class="actions">
-          <button id="btnStart" class="btn primary" type="button">📷 スキャン開始</button>
-          <button id="btnStop" class="btn" type="button" disabled>停止</button>
+          <button id="btnStart" class="btn primary">スキャン開始</button>
+          <button id="btnStop" class="btn stop">停止</button>
         </div>
       </div>
       
@@ -36,7 +36,7 @@
         <label class="label">読み取り結果（ISBN/EAN）</label>
         <div class="field">
           <input id="isbn" class="input" type="text" placeholder="バーコードを読み取るか、手入力" />
-          <button id="btnLookup" class="btn" type="button">取得</button>
+          <button id="btnLookup" class="btn primary">取得</button>
         </div>
         <p class="hint">※ iPhoneは「設定 > Safari > カメラ」を許可してね</p>
       </div>
@@ -138,7 +138,7 @@
 
       <div class="row">
         <button id="btnGenerate" class="btn primary" type="button">テキスト生成</button>
-        <button id="btnCopy" class="btn" type="button" disabled>コピー</button>
+        <button id="btnCopy" class="btn copy">コピー</button>
       </div>
 
       <label class="label">コピペ用テキスト</label>
@@ -153,5 +153,6 @@
 <script type="module" src="./app-test.js?v=40"></script>
 </body>
 </html>
+
 
 
