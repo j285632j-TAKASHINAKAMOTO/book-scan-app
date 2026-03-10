@@ -111,6 +111,8 @@ select.input:focus{
   color:#ffffff;
   font-weight:600;
   transition:.2s ease;
+  height:44px;
+font-size:14px;
 }
 
 .btn:hover{
@@ -328,4 +330,5 @@ select.input:focus{
     width:auto;
   }
 }
+
 
