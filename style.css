@@ -136,9 +136,9 @@ select.input:focus{
 }
 
 .btn.copy{
-  background:var(--ok);
-  border-color:rgba(72,209,122,.75);
-  color:#102018;
+  background:var(--primary);
+  border-color:rgba(58,109,240,.75);
+  color:white;
 }
 
 .actions{
@@ -328,3 +328,4 @@ select.input:focus{
     width:auto;
   }
 }
+
