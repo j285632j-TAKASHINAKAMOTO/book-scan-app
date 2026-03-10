@@ -378,50 +378,12 @@ function setBookInfoEmpty(message = "-") {
   if (titleEl) titleEl.textContent = message;
   if (authorsEl) authorsEl.textContent = "-";
   if (publisherEl) publisherEl.textContent = "-";
-
-  if (thumbEl) {
-    thumbEl.onload = null;
-    thumbEl.onerror = null;
-    thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙なし";
-    thumbEl.style.display = "none";
-  }
 }
 
-function setBookInfo({ title = "-", authors = "-", publisher = "-", thumb = "" }) {
+function setBookInfo({ title = "-", authors = "-", publisher = "-" }) {
   if (titleEl) titleEl.textContent = title;
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
-
-  if (!thumbEl) return;
-
-  const safeThumb = String(thumb || "").trim().replace("http://", "https://");
-
-  thumbEl.onload = null;
-  thumbEl.onerror = null;
-
-  if (!safeThumb) {
-    console.log("表紙URLなし");
-    thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙なし";
-    thumbEl.style.display = "none";
-    return;
-  }
-
-  thumbEl.onload = () => {
-    console.log("表紙画像 読み込み成功:", safeThumb);
-    thumbEl.style.display = "block";
-  };
-
-  thumbEl.onerror = () => {
-    console.log("表紙画像 読み込み失敗:", safeThumb);
-    thumbEl.removeAttribute("src");
-    thumbEl.alt = "表紙読み込み失敗";
-    thumbEl.style.display = "none";
-  };
-
-  thumbEl.src = safeThumb;
-  thumbEl.alt = `${title} の表紙`;
 }
 
 function updateSearchLinks(keyword) {
