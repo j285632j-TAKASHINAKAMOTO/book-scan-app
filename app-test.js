@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 
-console.log("app-test.js 安定版 読み込み開始");
+console.log("app-test.js 表紙画像なし版 読み込み開始");
 
 // --------------------
 // 要素取得
@@ -96,7 +96,7 @@ function init() {
     updateSearchLinks("");
     switchMode("buy");
     calcProfit();
-    
+
     if (btnCopy) {
       btnCopy.disabled = true;
     }
@@ -311,10 +311,8 @@ async function onBarcodeDetected(text) {
 
   updateSearchLinks(normalized);
 
-  // 先に停止
   stopCamera();
 
-  // 少し待ってから取得
   setTimeout(() => {
     console.log("lookupBook 呼び出し前 isbn:", isbnInput?.value);
     lookupBook();
@@ -438,7 +436,8 @@ async function lookupBook() {
           const title = book.summary.title || "タイトル不明";
           const authors = book.summary.author || "-";
           const publisher = book.summary.publisher || "-";
-          setBookInfo({ title, authors, publisher});
+
+          setBookInfo({ title, authors, publisher });
           updateSearchLinks(title);
           return;
         }
@@ -460,7 +459,7 @@ async function lookupBook() {
           const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
           const publisher = info.publisher || "-";
 
-          setBookInfo({ title, authors, publisher});
+          setBookInfo({ title, authors, publisher });
           updateSearchLinks(title);
           return;
         }
