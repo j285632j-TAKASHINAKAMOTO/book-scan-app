@@ -424,7 +424,8 @@ async function lookupBook() {
     }
 
     setBookInfoEmpty("取得中...");
-    updateSearchLinks(isbn);
+bookSummary = "";
+updateSearchLinks(isbn);
 
     // openBD
     try {
