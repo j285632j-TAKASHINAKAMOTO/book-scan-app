@@ -449,8 +449,8 @@ async function lookupBook() {
       console.warn("openBD失敗:", e);
     }
 
-    // Google Books
-    try {
+   // Google Books
+try {
   const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
   if (res.ok) {
     const data = await res.json();
