@@ -359,6 +359,7 @@ select.input{
   position:relative;
   width:100%;
   max-width:480px;
+  height:260px;
   margin:auto;
   border-radius:16px;
   overflow:hidden;
@@ -407,5 +408,6 @@ select.input{
     top:8%;
   }
 }
+
 
 
