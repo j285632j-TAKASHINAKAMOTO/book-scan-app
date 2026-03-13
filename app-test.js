@@ -387,12 +387,6 @@ function updateSearchLinks(keyword) {
   if (linkMercari) {
     linkMercari.href = `https://jp.mercari.com/search?keyword=${q}`;
   }
-  if (linkRakuma) {
-    linkRakuma.href = `https://fril.jp/s?query=${q}`;
-  }
-  if (linkYahoo) {
-    linkYahoo.href = `https://paypayfleamarket.yahoo.co.jp/search/${q}`;
-  }
 }
 
 async function lookupBook() {
