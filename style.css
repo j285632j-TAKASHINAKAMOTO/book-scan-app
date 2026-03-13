@@ -166,7 +166,7 @@ select.input:focus{
 
 .hint-inline{
   color:var(--muted);
-  font-size:16px;
+  font-size:12px;
 }
 
 .book{
@@ -421,6 +421,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
