@@ -89,6 +89,7 @@ select.input{
   border-radius:10px;
   color:var(--text);
   outline:none;
+  font-size:16px;
 }
 
 .input:focus,
@@ -419,6 +420,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
