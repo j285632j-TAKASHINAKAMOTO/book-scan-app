@@ -355,10 +355,6 @@ select.input{
   transition: .2s ease;
 }
 
-.video::after{
-  content:"";
-}
-
 .video-wrap{
   position:relative;
   width:100%;
@@ -411,4 +407,5 @@ select.input{
     top:8%;
   }
 }
+
 
