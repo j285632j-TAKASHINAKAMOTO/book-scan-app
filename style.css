@@ -409,7 +409,6 @@ select.input{
   }
 }
 
-
-
-
-
+.scan-line.hidden{
+  display:none;
+}
