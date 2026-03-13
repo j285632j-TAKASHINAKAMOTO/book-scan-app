@@ -211,7 +211,7 @@ select.input:focus{
   border-radius:999px;
   color:var(--text);
   text-decoration:none;
-  font-size:12px;
+  font-size:16px;
   transition:.2s ease;
 }
 
@@ -421,6 +421,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
