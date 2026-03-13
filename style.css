@@ -411,4 +411,5 @@ select.input{
 
 .scan-line.hidden{
   display:none;
+  animation:none;
 }
