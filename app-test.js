@@ -212,6 +212,8 @@ async function startCameraAndScan() {
 
     stopCamera();
     document.querySelector(".scan-line")?.style.display = "block";
+    const scanLine = document.querySelector(".scan-line");
+　　scanLine?.classList.remove("hidden");
 
     if (!window.isSecureContext) {
       alert("HTTPSのページで開いてください。");
@@ -314,6 +316,9 @@ async function onBarcodeDetected(text) {
 
   updateSearchLinks(normalized);
  document.querySelector(".scan-line")?.style.display = "none";
+
+  const scanLine = document.querySelector(".scan-line");
+  scanLine?.classList.add("hidden");
   stopCamera();
 
   setTimeout(() => {
