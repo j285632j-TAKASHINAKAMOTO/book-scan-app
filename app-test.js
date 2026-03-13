@@ -213,7 +213,7 @@ async function startCameraAndScan() {
     stopCamera();
     document.querySelector(".scan-line")?.style.display = "block";
     const scanLine = document.querySelector(".scan-line");
-　　scanLine?.classList.remove("hidden");
+    scanLine?.classList.remove("hidden");
 
     if (!window.isSecureContext) {
       alert("HTTPSのページで開いてください。");
