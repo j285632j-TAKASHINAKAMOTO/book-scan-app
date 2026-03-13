@@ -373,7 +373,7 @@ select.input{
   top:42%;
   transform:translate(-50%,-50%);
   width:82%;
-  height:22%;
+  height:26%;
   border:3px solid #3a6df0;
   border-radius:10px;
   pointer-events:none;
@@ -408,6 +408,7 @@ select.input{
     top:8%;
   }
 }
+
 
 
 
