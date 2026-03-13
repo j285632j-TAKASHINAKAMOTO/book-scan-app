@@ -293,7 +293,7 @@ select.input:focus{
 
 .video{
   width:100%;
-  height:260px;
+  height:100%;
   background:#000000;
   object-fit:cover;
   display:block;
@@ -321,8 +321,12 @@ select.input:focus{
     flex-direction:column;
   }
 
-  .video{
+ .video-wrap{
     height:220px;
+  }
+
+  .video{
+    height:100%;
   }
 
   .meta-row{
@@ -373,7 +377,7 @@ select.input{
   top:42%;
   transform:translate(-50%,-50%);
   width:82%;
-  height:60%;
+  height:40%;
   border:3px solid #3a6df0;
   border-radius:10px;
   pointer-events:none;
@@ -382,15 +386,17 @@ select.input{
 
 /* スキャンライン */
 
-.scan-line{
+.scan-frame{
   position:absolute;
-  left:5%;
-  width:90%;
-  height:3px;
-  background:#4de1ff;
-  box-shadow:0 0 10px #4de1ff;
-  border-radius:999px;
-  animation:scanMove 2s linear infinite;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:82%;
+  height:40%;
+  border:3px solid #3a6df0;
+  border-radius:10px;
+  pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.35);
 }
 
 /* 上下アニメーション */
@@ -413,6 +419,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
