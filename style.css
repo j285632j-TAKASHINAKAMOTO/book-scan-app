@@ -39,7 +39,7 @@ body{
 .sub{
   margin:6px 0 0;
   color:var(--muted);
-  font-size:12px;
+  font-size:16px;
 }
 
 .container{
@@ -111,7 +111,7 @@ select.input:focus{
   background:var(--primary);
   color:#ffffff;
   font-weight:600;
-  font-size:14px;
+  font-size:16px;
 }
 .btn:hover{
   filter:brightness(1.08);
@@ -161,7 +161,7 @@ select.input:focus{
 .hint{
   margin:6px 0 0;
   color:var(--muted);
-  font-size:16px;
+  font-size:12px;
 }
 
 .hint-inline{
@@ -420,6 +420,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
