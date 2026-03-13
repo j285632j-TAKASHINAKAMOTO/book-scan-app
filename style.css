@@ -33,7 +33,7 @@ body{
 
 .header h1{
   margin:0;
-  font-size:20px;
+  font-size:24px;
 }
 
 .sub{
@@ -161,12 +161,12 @@ select.input:focus{
 .hint{
   margin:6px 0 0;
   color:var(--muted);
-  font-size:12px;
+  font-size:16px;
 }
 
 .hint-inline{
   color:var(--muted);
-  font-size:12px;
+  font-size:16px;
 }
 
 .book{
@@ -420,6 +420,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
