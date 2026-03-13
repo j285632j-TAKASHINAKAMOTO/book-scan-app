@@ -57,6 +57,7 @@ let lastScannedText = "";
 let lastScanAt = 0;
 let isLookingUp = false;
 let bookSummary = "";
+let lastLookupIsbn = "";
 
 // --------------------
 // 初期化
@@ -415,6 +416,11 @@ async function lookupBook() {
       alert("ISBNを入力してください。");
       return;
     }
+    
+    if (isbn === lastLookupIsbn) {
+  console.log("同じISBNなので再取得しません");
+  return;
+}
 
     if (!isValidIsbn13(isbn)) {
       setBookInfoEmpty("ISBN誤り");
@@ -424,7 +430,6 @@ async function lookupBook() {
       return;
     }
 
-    setBookInfoEmpty("取得中...");
     bookSummary = "";
     updateSearchLinks(isbn);
 
@@ -443,6 +448,7 @@ async function lookupBook() {
           bookSummary = "";
 
           setBookInfo({ title, authors, publisher });
+          lastLookupIsbn = isbn;
           updateSearchLinks(title);
           return;
         }
@@ -470,6 +476,7 @@ async function lookupBook() {
           bookSummary = description.substring(0, 100);
 
           setBookInfo({ title, authors, publisher });
+          lastLookupIsbn = isbn;
           updateSearchLinks(title);
           return;
         }
