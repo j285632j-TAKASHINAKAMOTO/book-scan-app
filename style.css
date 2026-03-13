@@ -274,6 +274,7 @@ select.input:focus{
   color:var(--text);
   cursor:pointer;
   font-weight:600;
+  font-size:16px;
 }
 
 .seg-btn:hover{
@@ -420,6 +421,7 @@ select.input{
   display:none;
   animation:none;
 }
+
 
 
 
