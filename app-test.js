@@ -211,7 +211,7 @@ async function startCameraAndScan() {
     console.log("startCameraAndScan 実行");
 
     stopCamera();
-    document.querySelector(".scan-line")?.style.display = "block";
+    
     const scanLine = document.querySelector(".scan-line");
     scanLine?.classList.remove("hidden");
 
@@ -315,8 +315,7 @@ async function onBarcodeDetected(text) {
   }
 
   updateSearchLinks(normalized);
- document.querySelector(".scan-line")?.style.display = "none";
-
+ 
   const scanLine = document.querySelector(".scan-line");
   scanLine?.classList.add("hidden");
   stopCamera();
