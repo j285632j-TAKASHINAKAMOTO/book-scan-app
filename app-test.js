@@ -509,6 +509,8 @@ function formatYen(value) {
   return `${Math.round(value).toLocaleString("ja-JP")}円`;
 }
 
+
+
 function calcProfit() {
   try {
     const sell = toNumber(sellPrice?.value);
@@ -537,8 +539,10 @@ function calcProfit() {
       }
 
     judgeEl.textContent = text;
-      judgeEl.style.color = "";
-      judgeEl.style.background = "";
+
+judgeEl.style.borderColor = "";
+judgeEl.style.color = "";
+judgeEl.style.backgroundColor = "";
 
 if (text === "買い") {
   judgeEl.style.background = "#48d17a";
