@@ -536,20 +536,20 @@ function calcProfit() {
         text = "見送り";
       }
 
-      judgeEl.textContent = text;
-      judgeEl.style.borderColor = "";
-      judgeEl.style.color = "";
+     judgeEl.style.borderColor = "";
+judgeEl.style.color = "";
+judgeEl.style.background = "";
 
-      if (text === "買い") {
-        judgeEl.style.borderColor = "rgba(72,209,122,.6)";
-        judgeEl.style.color = "#48d17a";
-      } else if (text === "微妙") {
-        judgeEl.style.borderColor = "rgba(255,200,80,.6)";
-        judgeEl.style.color = "#ffc850";
-      } else if (text === "見送り") {
-        judgeEl.style.borderColor = "rgba(255,90,107,.6)";
-        judgeEl.style.color = "#ff5a6b";
-      }
+if (text === "買い") {
+  judgeEl.style.background = "#48d17a";
+  judgeEl.style.color = "#ffffff";
+} else if (text === "微妙") {
+  judgeEl.style.background = "#ffc850";
+  judgeEl.style.color = "#000000";
+} else if (text === "見送り") {
+  judgeEl.style.background = "#ff5a6b";
+  judgeEl.style.color = "#ffffff";
+}
     }
   } catch (e) {
     console.error("calcProfitエラー:", e);
