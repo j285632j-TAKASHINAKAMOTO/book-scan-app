@@ -536,7 +536,7 @@ function calcProfit() {
         text = "見送り";
       }
 
-     judgeEl.style.borderColor = "text";
+    judgeEl.textContent = text;
       judgeEl.style.color = "";
       judgeEl.style.background = "";
 
