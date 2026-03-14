@@ -536,9 +536,9 @@ function calcProfit() {
         text = "見送り";
       }
 
-     judgeEl.style.borderColor = "";
-judgeEl.style.color = "";
-judgeEl.style.background = "";
+     judgeEl.style.borderColor = "text";
+      judgeEl.style.color = "";
+      judgeEl.style.background = "";
 
 if (text === "買い") {
   judgeEl.style.background = "#48d17a";
