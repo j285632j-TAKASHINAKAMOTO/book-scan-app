@@ -363,6 +363,7 @@ function normalizeIsbn(value) {
 
 function isValidIsbn13(isbn) {
   if (!/^\d{13}$/.test(isbn)) return false;
+  if (!(isbn.startsWith("978") || isbn.startsWith("979"))) return false;
 
   let sum = 0;
   for (let i = 0; i < 12; i++) {
