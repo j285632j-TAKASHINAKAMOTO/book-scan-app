@@ -165,8 +165,9 @@ select.input:focus{
 }
 
 .hint-inline{
-  color:var(--muted);
+  color:var(--text);
   font-size:16px;
+  font-weight:600;
 }
 
 #threshold{
