@@ -79,6 +79,18 @@ h2{
   align-items:center;
 }
 
+#isbn{
+  flex:1;
+}
+
+#btnLookup{
+  height: 42px;
+  padding: 0 16px;
+  font-size: 16px;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+}
+
 .input,
 .textarea,
 select.input{
