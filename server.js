@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const client = new OpenAI({
-  apiKey: "ここにあなたのOPENAI_API_KEY"
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 app.post("/summary", async (req, res) => {
