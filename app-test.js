@@ -382,10 +382,11 @@ function setBookInfoEmpty(message = "-") {
   if (publisherEl) publisherEl.textContent = "-";
 }
 
-function setBookInfo({ title = "-", authors = "-", publisher = "-" }) {
+function setBookInfo({ title = "-", authors = "-", publisher = "-", summary = "-" }) {
   if (titleEl) titleEl.textContent = title;
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
+  if (summaryEl) summaryEl.textContent = summary;
 }
 
 function updateSearchLinks(keyword) {
