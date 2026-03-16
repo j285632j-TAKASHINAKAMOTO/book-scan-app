@@ -170,7 +170,8 @@ select.input:focus{
 }
 
 #threshold{
-  width:70%;
+   width:50%;
+  max-width:140px;
 }
 
 .book{
