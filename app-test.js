@@ -19,6 +19,7 @@ const btnLookup = $("btnLookup");
 const titleEl = $("title");
 const authorsEl = $("authors");
 const publisherEl = $("publisher");
+const summaryEl = $("summary");
 
 // 検索リンク
 const linkMercari = $("linkMercari");
