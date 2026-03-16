@@ -169,6 +169,10 @@ select.input:focus{
   font-size:16px;
 }
 
+#threshold{
+  width:50%;
+}
+
 .book{
   display:flex;
   gap:12px;
