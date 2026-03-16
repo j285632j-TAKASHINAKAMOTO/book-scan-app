@@ -398,19 +398,14 @@ select.input{
 
 /* スキャンライン */
 
-.scan-frame{
+.scan-line{
   position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:82%;
-  height:40%;
-  border:3px solid #3a6df0;
-  border-radius:10px;
-  pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(0,0,0,0.35);
+  left:8%;
+  right:8%;
+  height:3px;
+  background:#3a6df0;
+  animation:scanMove 2s linear infinite;
 }
-
 /* 上下アニメーション */
 
 @keyframes scanMove{
