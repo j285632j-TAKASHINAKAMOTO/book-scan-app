@@ -170,6 +170,10 @@ select.input:focus{
   font-weight:700;
 }
 
+#thresholdWrap .hint^inline{
+   color:#fff !important;
+}
+
 #threshold{
    width:50%;
   max-width:140px;
