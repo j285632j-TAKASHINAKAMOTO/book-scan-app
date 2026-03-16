@@ -460,14 +460,16 @@ if (!isValidIsbn13(isbn)) {
         const data = await res.json();
         const book = data?.[0];
 
-        if (book?.summary) {
-          const title = book.summary.title || "タイトル不明";
-          const authors = book.summary.author || "-";
-          const publisher = book.summary.publisher || "-";
+       if (book?.summary) {
+  const title = book.summary.title || "タイトル不明";
+  const authors = book.summary.author || "-";
+  const publisher = book.summary.publisher || "-";
 
-          bookSummary = "";
+  let description = book.summary.description || "";
+  description = description.replace(/\s+/g, " ").trim();
+  bookSummary = description.substring(0, 100);
 
-          setBookInfo({ title, authors, publisher });
+  setBookInfo({ title, authors, publisher });
           lastLookupIsbn = isbn;
           updateSearchLinks(title);
           return;
