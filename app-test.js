@@ -380,6 +380,7 @@ function setBookInfoEmpty(message = "-") {
   if (titleEl) titleEl.textContent = message;
   if (authorsEl) authorsEl.textContent = "-";
   if (publisherEl) publisherEl.textContent = "-";
+  if (summaryEl) summaryEl.textContent = "-";
 }
 
 function setBookInfo({ title = "-", authors = "-", publisher = "-", summary = "-" }) {
