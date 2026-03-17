@@ -398,7 +398,7 @@ select.input{
 .scan-frame{
   position:absolute;
   left:50%;
-  top:42%;
+  top:50%;
   transform:translate(-50%,-50%);
   width:82%;
   height:40%;
@@ -414,10 +414,13 @@ select.input{
   position:absolute;
   left:8%;
   right:8%;
+  top:50%;
+  transform:translateY(-50%);
   height:3px;
   background:#3a6df0;
   animation:scanMove 2s linear infinite;
 }
+
 /* 上下アニメーション */
 
 @keyframes scanMove{
