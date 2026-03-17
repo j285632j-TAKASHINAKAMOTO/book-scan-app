@@ -455,35 +455,36 @@ if (!isValidIsbn13(isbn)) {
     updateSearchLinks(isbn);
 
     // openBD
-    try {
-      const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
-      if (res.ok) {
-        const data = await res.json();
-        const book = data?.[0];
+try {
+  const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
+  if (res.ok) {
+    const data = await res.json();
+    const book = data?.[0];
 
-       if (book?.summary) {
-  const title = book.summary.title || "タイトル不明";
-  const authors = book.summary.author || "-";
-  const publisher = book.summary.publisher || "-";
+    if (book?.summary) {
+      const title = book.summary.title || "タイトル不明";
+      const authors = book.summary.author || "-";
+      const publisher = book.summary.publisher || "-";
 
-  let description = book.summary.description || "";
-  description = description.replace(/\s+/g, " ").trim();
-  bookSummary = description.substring(0, 100);
+      let description = book.summary.description || "";
+      description = description.replace(/\s+/g, " ").trim();
+      bookSummary = description ? description.substring(0, 100) : "要約情報はありません";
 
-  setBookInfo({
-    title,
-    authors,
-    publisher,
-    summary: bookSummary || "-"
-  });
-          lastLookupIsbn = isbn;
-          updateSearchLinks(title);
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn("openBD失敗:", e);
+      setBookInfo({
+        title,
+        authors,
+        publisher,
+        summary: bookSummary
+      });
+
+      lastLookupIsbn = isbn;
+      updateSearchLinks(title);
+      return;
     }
+  }
+} catch (e) {
+  console.warn("openBD失敗:", e);
+}
 
     // Google Books
     try {
