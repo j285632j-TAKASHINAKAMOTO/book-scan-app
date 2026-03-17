@@ -19,7 +19,6 @@ const btnLookup = $("btnLookup");
 const titleEl = $("title");
 const authorsEl = $("authors");
 const publisherEl = $("publisher");
-const summaryEl = $("summary");
 
 // 検索リンク
 const linkMercari = $("linkMercari");
@@ -57,7 +56,6 @@ let scanActive = false;
 let lastScannedText = "";
 let lastScanAt = 0;
 let isLookingUp = false;
-let bookSummary = "";
 let lastLookupIsbn = "";
 
 // --------------------
@@ -380,14 +378,12 @@ function setBookInfoEmpty(message = "-") {
   if (titleEl) titleEl.textContent = message;
   if (authorsEl) authorsEl.textContent = "-";
   if (publisherEl) publisherEl.textContent = "-";
-  if (summaryEl) summaryEl.textContent = "-";
 }
 
-function setBookInfo({ title = "-", authors = "-", publisher = "-", summary = "-" }) {
+function setBookInfo({ title = "-", authors = "-", publisher = "-"}) {
   if (titleEl) titleEl.textContent = title;
   if (authorsEl) authorsEl.textContent = authors;
   if (publisherEl) publisherEl.textContent = publisher;
-  if (summaryEl) summaryEl.textContent = summary;
 }
 
 function updateSearchLinks(keyword) {
@@ -461,20 +457,10 @@ try {
     const data = await res.json();
     const book = data?.[0];
 
-    if (book?.summary) {
-      const title = book.summary.title || "タイトル不明";
-      const authors = book.summary.author || "-";
-      const publisher = book.summary.publisher || "-";
-
-      let description = book.summary.description || "";
-      description = description.replace(/\s+/g, " ").trim();
-      bookSummary = description ? description.substring(0, 100) : "要約情報はありません";
-
       setBookInfo({
         title,
         authors,
         publisher,
-        summary: bookSummary || "-"
       });
 
       lastLookupIsbn = isbn;
@@ -504,7 +490,7 @@ try {
           description = description.replace(/\s+/g, " ").trim();
           bookSummary = description.substring(0, 100);
 
-          setBookInfo({title,authors,publisher,summary: bookSummary || "-"});
+          setBookInfo({title,authors,publisher});
           lastLookupIsbn = isbn;
           updateSearchLinks(title);
           return;
@@ -515,7 +501,6 @@ try {
     }
 
     setBookInfoEmpty("書誌取得不可");
-    bookSummary = "";
     if (authorsEl) authorsEl.textContent = "検索リンクで確認してください";
     updateSearchLinks(isbn);
     alert("書籍情報を自動取得できませんでした。検索リンクで確認してください。");
@@ -624,8 +609,6 @@ function generateListingText() {
       price ? `・販売価格：${price}円` : "",
       `・状態：${cond}`,
       "",
-      summaryLine,
-       "",
       `【商品説明】`,
       `${title} の出品です。`,
       `中古本のため、多少の使用感はある場合があります。`,
