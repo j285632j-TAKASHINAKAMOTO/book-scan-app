@@ -423,7 +423,6 @@ async function lookupBook() {
 
     if (!/^\d{13}$/.test(isbn)) {
   setBookInfoEmpty("ISBNは13桁です");
-  bookSummary = "";
   updateSearchLinks(isbn);
   alert("ISBNは13桁の数字で入力してください。");
   return;
@@ -433,7 +432,6 @@ if (!(isbn.startsWith("978") || isbn.startsWith("979"))) {
   if (titleEl) titleEl.textContent = "価格コードの可能性があります";
   if (authorsEl) authorsEl.textContent = "上のISBNバーコードを読み取ってください";
   if (publisherEl) publisherEl.textContent = "-";
-  bookSummary = "";
   updateSearchLinks(isbn);
   alert("価格コードを読み取っている可能性があります。978 / 979 から始まるISBNバーコードを読み取ってください。");
   return;
@@ -441,13 +439,10 @@ if (!(isbn.startsWith("978") || isbn.startsWith("979"))) {
 
 if (!isValidIsbn13(isbn)) {
   setBookInfoEmpty("ISBN誤り");
-  bookSummary = "";
   updateSearchLinks(isbn);
   alert("ISBNの数字が正しくない可能性があります。");
   return;
 }
-
-    bookSummary = "";
     updateSearchLinks(isbn);
 
     // openBD
@@ -488,7 +483,6 @@ try {
           let description = info.description || "";
           description = description.replace(/<[^>]*>/g, "");
           description = description.replace(/\s+/g, " ").trim();
-          bookSummary = description.substring(0, 100);
 
           setBookInfo({title,authors,publisher});
           lastLookupIsbn = isbn;
