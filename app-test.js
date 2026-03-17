@@ -474,7 +474,7 @@ try {
         title,
         authors,
         publisher,
-        summary: bookSummary
+        summary: bookSummary || "-"
       });
 
       lastLookupIsbn = isbn;
