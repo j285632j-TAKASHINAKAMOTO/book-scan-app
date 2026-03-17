@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -23,12 +26,13 @@ app.post("/summary", async (req, res) => {
         },
         {
           role: "user",
-          content: `次の本を80文字で要約してください\n${title}`
+          content: `次の本を80文字以内で要約してください。\n${title}`
         }
       ]
     });
 
     const summary = completion.choices[0].message.content;
+
     res.json({ summary });
 
   } catch (err) {
@@ -38,5 +42,5 @@ app.post("/summary", async (req, res) => {
 });
 
 app.listen(3000, () => {
-  console.log("summary server running");
+  console.log("summary server running http://localhost:3000");
 });
