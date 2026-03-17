@@ -469,7 +469,12 @@ if (!isValidIsbn13(isbn)) {
   description = description.replace(/\s+/g, " ").trim();
   bookSummary = description.substring(0, 100);
 
-  setBookInfo({ title, authors, publisher });
+  setBookInfo({
+    title,
+    authors,
+    publisher,
+    summary: bookSummary || "-"
+  });
           lastLookupIsbn = isbn;
           updateSearchLinks(title);
           return;
