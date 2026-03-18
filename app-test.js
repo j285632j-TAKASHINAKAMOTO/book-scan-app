@@ -145,72 +145,12 @@ function stopCamera() {
   }
 }
 
-function waitForVideoReady(videoEl) {
-  return new Promise((resolve) => {
-    if (!videoEl) {
-      resolve();
-      return;
-    }
-
-    if (videoEl.readyState >= 1) {
-      resolve();
-      return;
-    }
-
-    videoEl.onloadedmetadata = () => resolve();
-  });
-}
-
-async function getBackCameraStream() {
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" }
-      },
-      audio: false
-    });
-  } catch (e) {
-    console.log("facingMode指定で失敗。deviceId方式に切り替えます。", e);
-  }
-
-  const tempStream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: false
-  });
-  tempStream.getTracks().forEach((track) => track.stop());
-
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  const videos = devices.filter((d) => d.kind === "videoinput");
-
-  let backCam = videos.find((v) =>
-    /back|rear|environment|背面|外側/i.test(v.label)
-  );
-
-  if (!backCam && videos.length > 1) {
-    backCam = videos[videos.length - 1];
-  }
-
-  if (backCam) {
-    return await navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: { exact: backCam.deviceId }
-      },
-      audio: false
-    });
-  }
-
-  return await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: false
-  });
-}
-
 async function startCameraAndScan() {
   try {
     console.log("startCameraAndScan 実行");
 
     stopCamera();
-    
+
     const scanLine = document.querySelector(".scan-line");
     scanLine?.classList.remove("hidden");
 
@@ -228,18 +168,6 @@ async function startCameraAndScan() {
       alert("video要素が見つかりません。");
       return;
     }
-
-    streamRef = await getBackCameraStream();
-
-    video.setAttribute("playsinline", "true");
-    video.muted = true;
-    video.autoplay = true;
-    video.srcObject = streamRef;
-
-    await waitForVideoReady(video);
-    await video.play();
-
-    console.log("カメラ起動OK");
 
     if (btnStart) btnStart.disabled = true;
     if (btnStop) btnStop.disabled = false;
@@ -259,21 +187,26 @@ async function startBarcodeScanning() {
     console.log("ZXing 読み込み開始");
 
     const zxing = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
-    const BrowserMultiFormatReader = zxing.BrowserMultiFormatReader;
+    const { BrowserMultiFormatReader } = zxing;
 
     scanReader = new BrowserMultiFormatReader();
     scanActive = true;
 
     console.log("ZXing スキャン開始");
 
-    scanReader.decodeFromConstraints(
+    await scanReader.decodeFromConstraints(
       {
         video: {
-          facingMode: "environment"
-        }
+          facingMode: { ideal: "environment" }
+        },
+        audio: false
       },
       video,
-      (result, error) => {
+      (result, error, controls) => {
+        if (!streamRef && video?.srcObject) {
+          streamRef = video.srcObject;
+        }
+
         if (result) {
           const text = result.getText();
           console.log("読み取り成功:", text);
@@ -289,6 +222,7 @@ async function startBarcodeScanning() {
   } catch (e) {
     console.error("ZXingエラー:", e);
     alert(`バーコード読み取りの初期化に失敗しました: ${e.message}`);
+    stopCamera();
   }
 }
 
