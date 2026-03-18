@@ -145,22 +145,6 @@ function stopCamera() {
   }
 }
 
-function waitForVideoReady(videoEl) {
-  return new Promise((resolve) => {
-    if (!videoEl) {
-      resolve();
-      return;
-    }
-
-    if (videoEl.readyState >= 1) {
-      resolve();
-      return;
-    }
-
-    videoEl.onloadedmetadata = () => resolve();
-  });
-}
-
 async function getBackCameraStream() {
   try {
     return await navigator.mediaDevices.getUserMedia({
@@ -203,16 +187,17 @@ async function startCameraAndScan() {
       return;
     }
 
+    console.log("getUserMedia 開始");
     streamRef = await getBackCameraStream();
+    console.log("getUserMedia 成功", streamRef);
 
-    video.setAttribute("playsinline", "true");
+    video.playsInline = true;
     video.muted = true;
     video.autoplay = true;
     video.srcObject = streamRef;
 
-    await waitForVideoReady(video);
+    console.log("video.play 前");
     await video.play();
-
     console.log("カメラ起動OK");
 
     if (btnStart) btnStart.disabled = true;
