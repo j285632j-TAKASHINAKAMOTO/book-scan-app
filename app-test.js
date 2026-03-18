@@ -145,6 +145,40 @@ function stopCamera() {
   }
 }
 
+function waitForVideoReady(videoEl) {
+  return new Promise((resolve) => {
+    if (!videoEl) {
+      resolve();
+      return;
+    }
+
+    if (videoEl.readyState >= 1) {
+      resolve();
+      return;
+    }
+
+    videoEl.onloadedmetadata = () => resolve();
+  });
+}
+
+async function getBackCameraStream() {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" }
+      },
+      audio: false
+    });
+  } catch (e) {
+    console.warn("背面カメラ指定で失敗。通常カメラで再試行します。", e);
+  }
+
+  return await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: false
+  });
+}
+
 async function startCameraAndScan() {
   try {
     console.log("startCameraAndScan 実行");
