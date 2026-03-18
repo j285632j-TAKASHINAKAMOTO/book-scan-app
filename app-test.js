@@ -169,10 +169,22 @@ async function startCameraAndScan() {
       return;
     }
 
+    streamRef = await getBackCameraStream();
+
+    video.setAttribute("playsinline", "true");
+    video.muted = true;
+    video.autoplay = true;
+    video.srcObject = streamRef;
+
+    await waitForVideoReady(video);
+    await video.play();
+
+    console.log("カメラ起動OK");
+
     if (btnStart) btnStart.disabled = true;
     if (btnStop) btnStop.disabled = false;
 
-    await startBarcodeScanning();
+    startBarcodeScanning();
   } catch (e) {
     console.error("startCameraAndScanエラー:", e);
     alert(`カメラを起動できませんでした: ${e.name} / ${e.message}`);
@@ -194,35 +206,22 @@ async function startBarcodeScanning() {
 
     console.log("ZXing スキャン開始");
 
-    await scanReader.decodeFromConstraints(
-      {
-        video: {
-          facingMode: { ideal: "environment" }
-        },
-        audio: false
-      },
-      video,
-      (result, error, controls) => {
-        if (!streamRef && video?.srcObject) {
-          streamRef = video.srcObject;
-        }
-
-        if (result) {
-          const text = result.getText();
-          console.log("読み取り成功:", text);
-          onBarcodeDetected(text);
-          return;
-        }
-
-        if (error && error.name !== "NotFoundException") {
-          console.warn("scan error:", error);
-        }
+    scanReader.decodeFromVideoElement(video, (result, error) => {
+      if (result) {
+        const text = result.getText();
+        console.log("読み取り成功:", text);
+        onBarcodeDetected(text);
+        return;
       }
-    );
+
+      if (error && error.name !== "NotFoundException") {
+        console.warn("scan error:", error);
+      }
+    });
   } catch (e) {
     console.error("ZXingエラー:", e);
     alert(`バーコード読み取りの初期化に失敗しました: ${e.message}`);
-    stopCamera();
+    // ここでは stopCamera() しない
   }
 }
 
