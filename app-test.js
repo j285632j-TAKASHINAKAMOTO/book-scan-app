@@ -382,24 +382,21 @@ if (!isValidIsbn13(isbn)) {
     // openBD
 try {
   const res = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
-  if (res.ok) {
-    const data = await res.json();
-    const book = data?.[0];
+  if (!res.ok) return;
 
-      setBookInfo({
-        title,
-        authors,
-        publisher,
-      });
+  const data = await res.json();
+  const book = data?.[0];
+  if (!book?.summary) return;
 
-      lastLookupIsbn = isbn;
-      updateSearchLinks(title);
-      return;
-    }
-  }
-} catch (e) {
-  console.warn("openBD失敗:", e);
-}
+  setBookInfo({
+    title: book.summary.title || "タイトル不明",
+    authors: book.summary.author || "-",
+    publisher: book.summary.publisher || "-"
+  });
+
+  lastLookupIsbn = isbn;
+  return;
+} catch (e) {}
 
     // Google Books
     try {
