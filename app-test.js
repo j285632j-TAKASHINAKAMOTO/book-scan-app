@@ -519,10 +519,6 @@ function generateListingText() {
     const extra = note?.value?.trim() || "";
     const isbn = normalizeIsbn(isbnInput?.value || "");
 
-    const summaryLine = bookSummary
-  ? `【内容紹介】\n${bookSummary}${bookSummary.length >= 100 ? "..." : ""}`
-  : "";
-
     const lines = [
       `${title}`,
       "",
