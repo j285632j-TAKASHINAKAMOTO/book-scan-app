@@ -22,8 +22,6 @@ const publisherEl = $("publisher");
 
 // 検索リンク
 const linkMercari = $("linkMercari");
-const linkRakuma = $("linkRakuma");
-const linkYahoo = $("linkYahoo");
 
 // モード切替
 const btnModeBuy = $("btnModeBuy");
@@ -428,10 +426,6 @@ try {
           const title = info.title || "タイトル不明";
           const authors = Array.isArray(info.authors) ? info.authors.join(" / ") : "-";
           const publisher = info.publisher || "-";
-
-          let description = info.description || "";
-          description = description.replace(/<[^>]*>/g, "");
-          description = description.replace(/\s+/g, " ").trim();
 
           setBookInfo({title,authors,publisher});
           lastLookupIsbn = isbn;
